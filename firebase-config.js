@@ -1,27 +1,21 @@
 ﻿/* ==========================================================
    RANDOM FITS FIREBASE CONFIG
-   ----------------------------------------------------------
-   Paste your Firebase web app config here ONE TIME.
-
-   This one file is used by:
-   - auth.js       customer Google login
-   - admin.js      admin Google login
+   This file is used by auth.js and admin.js.
 ========================================================== */
 
 export const firebaseConfig = {
-  apiKey: "PASTE_FIREBASE_API_KEY",
-  authDomain: "PASTE_FIREBASE_AUTH_DOMAIN",
-  projectId: "PASTE_FIREBASE_PROJECT_ID",
-  storageBucket: "PASTE_FIREBASE_STORAGE_BUCKET",
-  messagingSenderId: "PASTE_FIREBASE_MESSAGING_SENDER_ID",
-  appId: "PASTE_FIREBASE_APP_ID"
+  apiKey: "AIzaSyAHU1SxhEKG7nLq1yyzT5BM5UPeTGZrhTs",
+  authDomain: "random-fits.firebaseapp.com",
+  projectId: "random-fits",
+  storageBucket: "random-fits.firebasestorage.app",
+  messagingSenderId: "502249070215",
+  appId: "1:502249070215:web:d68c1455bd3e6c75c22222",
+  measurementId: "G-FFJCHBKWMW"
 };
 
-/* Put your admin Gmail here.
-   Only these emails can open admin.html.
-*/
+/* Only these emails can open admin.html */
 export const ADMIN_EMAILS = [
-  "PASTE_YOUR_ADMIN_GMAIL_HERE"
+  "josedia1219@gmail.com"
 ];
 
 export function firebaseIsConfigured() {
