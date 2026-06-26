@@ -1316,3 +1316,175 @@ input:-webkit-autofill:focus {
 }
 
 
+
+/* Google admin login */
+.google-login-btn {
+  width: 100%;
+  min-height: 52px;
+  border: 1px solid var(--line-strong);
+  background: #fff;
+  color: #050505;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+.google-login-btn:hover {
+  background: #dcdcdc;
+}
+
+.google-login-btn:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.google-login-btn span {
+  width: 26px;
+  height: 26px;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  font-weight: 900;
+  color: #4285f4;
+  background: #fff;
+}
+
+.note.success {
+  color: #9be7b0;
+}
+
+.note.error {
+  color: #ffb4b4;
+}
+
+
+
+/* Customer account / website Google login */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.login-button {
+  border: 1px solid var(--line-strong);
+  background: rgba(255,255,255,.06);
+  color: var(--white);
+  padding: 11px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  transition: .2s ease;
+}
+
+.login-button:hover {
+  background: rgba(255,255,255,.14);
+}
+
+.account-page {
+  width: min(1180px, 92vw);
+  margin: 0 auto;
+  padding: 64px 0 90px;
+}
+
+.account-hero {
+  margin-bottom: 28px;
+}
+
+.account-hero h1 {
+  margin: 0;
+  max-width: 760px;
+  font-size: clamp(48px, 7vw, 92px);
+  line-height: .92;
+  letter-spacing: -.06em;
+}
+
+.account-hero p:last-child {
+  max-width: 640px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.account-grid {
+  display: grid;
+  grid-template-columns: .85fr 1.15fr;
+  gap: 18px;
+}
+
+.account-card {
+  background: rgba(255,255,255,.045);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: clamp(22px, 4vw, 38px);
+}
+
+.account-card h2 {
+  margin: 0 0 14px;
+  font-size: 32px;
+  letter-spacing: -.04em;
+}
+
+.profile-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.profile-row img {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #222;
+}
+
+.account-orders {
+  display: grid;
+  gap: 10px;
+}
+
+.account-order {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.account-order strong,
+.account-order span {
+  display: block;
+}
+
+.account-order span {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+@media (max-width: 850px) {
+  .account-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .header-actions {
+    gap: 6px;
+  }
+
+  .login-button,
+  .bag-button {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+
+
