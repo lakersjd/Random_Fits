@@ -9,13 +9,12 @@
 ========================================================== */
 
 export const firebaseConfig = {
-  apiKey: "AIzaSyAHU1SxhEKG7nLq1yyzT5BM5UPeTGZrhTs",
-  authDomain: "random-fits.firebaseapp.com",
-  projectId: "random-fits",
-  storageBucket: "random-fits.firebasestorage.app",
-  messagingSenderId: "502249070215",
-  appId: "1:502249070215:web:d68c1455bd3e6c75c22222",
-  measurementId: "G-FFJCHBKWMW"
+  apiKey: "PASTE_FIREBASE_API_KEY",
+  authDomain: "PASTE_FIREBASE_AUTH_DOMAIN",
+  projectId: "PASTE_FIREBASE_PROJECT_ID",
+  storageBucket: "PASTE_FIREBASE_STORAGE_BUCKET",
+  messagingSenderId: "PASTE_FIREBASE_MESSAGING_SENDER_ID",
+  appId: "PASTE_FIREBASE_APP_ID"
 };
 
 /* Put your admin Gmail here.

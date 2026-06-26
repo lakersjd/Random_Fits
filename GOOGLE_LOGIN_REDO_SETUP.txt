@@ -17,13 +17,12 @@ Project Settings > General > Your apps > Web app.
 Copy the Firebase config. It looks like:
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAHU1SxhEKG7nLq1yyzT5BM5UPeTGZrhTs",
-  authDomain: "random-fits.firebaseapp.com",
-  projectId: "random-fits",
-  storageBucket: "random-fits.firebasestorage.app",
-  messagingSenderId: "502249070215",
-  appId: "1:502249070215:web:d68c1455bd3e6c75c22222",
-  measurementId: "G-FFJCHBKWMW"
+  apiKey: "...",
+  authDomain: "...firebaseapp.com",
+  projectId: "...",
+  storageBucket: "...",
+  messagingSenderId: "...",
+  appId: "..."
 };
 
 STEP 3 - Paste into firebase-config.js
