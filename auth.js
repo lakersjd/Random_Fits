@@ -18,10 +18,13 @@ import {
 ========================================================== */
 
 const firebaseConfig = {
-  apiKey: "PASTE_FIREBASE_API_KEY",
-  authDomain: "PASTE_FIREBASE_AUTH_DOMAIN",
-  projectId: "PASTE_FIREBASE_PROJECT_ID",
-  appId: "PASTE_FIREBASE_APP_ID"
+  apiKey: "AIzaSyAHU1SxhEKG7nLq1yyzT5BM5UPeTGZrhTs",
+  authDomain: "random-fits.firebaseapp.com",
+  projectId: "random-fits",
+  storageBucket: "random-fits.firebasestorage.app",
+  messagingSenderId: "502249070215",
+  appId: "1:502249070215:web:d68c1455bd3e6c75c22222",
+  measurementId: "G-FFJCHBKWMW"
 };
 
 let app = null;
