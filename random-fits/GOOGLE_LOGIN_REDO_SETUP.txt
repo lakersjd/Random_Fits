@@ -1,0 +1,60 @@
+﻿RANDOM FITS GOOGLE LOGIN - REDONE CLEAN SETUP
+
+This version uses ONE Firebase config file:
+
+firebase-config.js
+
+Paste your Firebase config ONE TIME in firebase-config.js.
+That same file controls:
+- Website customer Google login
+- Admin Google login
+
+STEP 1 - Firebase Console
+Create or open your Firebase project.
+
+STEP 2 - Add a Web App
+Project Settings > General > Your apps > Web app.
+Copy the Firebase config. It looks like:
+
+const firebaseConfig = {
+  apiKey: "...",
+  authDomain: "...firebaseapp.com",
+  projectId: "...",
+  storageBucket: "...",
+  messagingSenderId: "...",
+  appId: "..."
+};
+
+STEP 3 - Paste into firebase-config.js
+Open firebase-config.js and replace the placeholder values.
+
+STEP 4 - Add your admin Gmail
+In firebase-config.js, replace:
+
+export const ADMIN_EMAILS = [
+  "PASTE_YOUR_ADMIN_GMAIL_HERE"
+];
+
+with your Gmail.
+
+STEP 5 - Enable Google sign-in
+Firebase > Authentication > Sign-in method > Google > Enable > Save.
+
+STEP 6 - Authorized domain
+Firebase > Authentication > Settings > Authorized domains.
+Add:
+
+eliaxyt.github.io
+
+STEP 7 - Push
+git add .
+git commit -m "Connect Firebase config"
+git push -u origin main
+
+TEST LINKS:
+Customer login:
+https://eliaxyt.github.io/Random_Fits/account.html
+
+Admin login:
+https://eliaxyt.github.io/Random_Fits/admin.html
+
