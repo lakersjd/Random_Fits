@@ -13,7 +13,7 @@ export const firebaseConfig = {
   measurementId: "G-FFJCHBKWMW"
 };
 
-/* Only these emails can open admin.html */
+/* Only this email can open admin.html */
 export const ADMIN_EMAILS = [
   "josedia1219@gmail.com"
 ];
@@ -37,4 +37,3 @@ export function adminEmailsAreConfigured() {
     ADMIN_EMAILS.every(email => email && !email.includes("PASTE_"))
   );
 }
-
