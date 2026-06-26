@@ -1,0 +1,16 @@
+﻿Random Fits Free Address Autocomplete
+
+This version does NOT require Google Places or any paid API.
+
+How it works:
+- Customer types in the Address field.
+- After 3 characters, the site searches free public address suggestions.
+- It checks common typos like "guildford" -> "guilford".
+- It shows matching address suggestions when available.
+- It always gives a "Use typed address" option so checkout is never blocked.
+- ZIP still auto-fills city/state when possible.
+
+Important:
+Free address autocomplete will not be as perfect as Shopify or Google.
+It can miss exact house numbers sometimes, but it costs nothing and needs no key.
+

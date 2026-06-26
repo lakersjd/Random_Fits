@@ -1,0 +1,16 @@
+﻿Random Fits House Number Fix
+
+This update makes sure the typed house number is kept during address autofill.
+
+Example:
+Customer types:
+307 guildford
+
+If the free search returns:
+Guilford Ave, Bronx, NY 10451
+
+The checkout fills:
+307 Guilford Ave
+
+So the house number is not lost.
+
