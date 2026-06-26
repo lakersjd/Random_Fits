@@ -19,7 +19,7 @@
       <a href="admin.html">Admin</a>
     </nav>
 
-    <button class="bag-button" id="lockAdmin">Lock</button>
+    <button class="bag-button" id="lockAdmin">Sign Out</button>
   </header>
 
   <main class="admin-page" id="adminPage">
@@ -27,17 +27,15 @@
       <div class="admin-lock-card">
         <p class="tag">Admin Only</p>
         <h1>Orders Dashboard</h1>
-        <p>Enter the admin PIN to view test orders and print shipping labels.</p>
+        <p>Sign in with an approved Google account to view test orders and print shipping labels.</p>
 
-        <form id="adminLoginForm" class="admin-login-form">
-          <label>Admin PIN
-            <input type="password" id="adminPin" placeholder="Enter PIN" required>
-          </label>
-          <button class="primary-btn full" type="submit">Unlock Admin</button>
-        </form>
+        <button id="googleLoginButton" class="google-login-btn" type="button">
+          <span>G</span>
+          Continue with Google
+        </button>
 
-        <p class="note">
-          Default test PIN: <strong>1234</strong>. This is only basic front-end protection, not real security.
+        <p id="adminLoginMessage" class="note">
+          Google login is the only admin login. Add your Firebase config and approved admin email in <strong>admin.js</strong>.
         </p>
       </div>
     </section>
@@ -92,7 +90,7 @@
     </section>
   </main>
 
-  <script src="admin.js"></script>
+  <script type="module" src="admin.js"></script>
 </body>
 </html>
 

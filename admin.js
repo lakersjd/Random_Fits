@@ -1,9 +1,23 @@
-﻿const ADMIN_PIN = "1234";
+﻿import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+import {
+  firebaseConfig,
+  ADMIN_EMAILS,
+  firebaseIsConfigured,
+  adminEmailsAreConfigured
+} from "./firebase-config.js";
 
 const adminLock = document.getElementById("adminLock");
 const adminDashboard = document.getElementById("adminDashboard");
-const adminLoginForm = document.getElementById("adminLoginForm");
-const adminPin = document.getElementById("adminPin");
+const googleLoginButton = document.getElementById("googleLoginButton");
+const adminLoginMessage = document.getElementById("adminLoginMessage");
 const lockAdmin = document.getElementById("lockAdmin");
 
 const ordersList = document.getElementById("ordersList");
@@ -18,6 +32,119 @@ const statNewOrders = document.getElementById("statNewOrders");
 const statSales = document.getElementById("statSales");
 
 let selectedOrderNumber = null;
+let firebaseReady = false;
+let app = null;
+let auth = null;
+let provider = null;
+
+function setLoginMessage(message, type = "") {
+  if (!adminLoginMessage) return;
+
+  adminLoginMessage.innerHTML = message;
+  adminLoginMessage.classList.remove("success", "error");
+
+  if (type) {
+    adminLoginMessage.classList.add(type);
+  }
+}
+
+function initFirebaseLogin() {
+  if (!firebaseIsConfigured()) {
+    setLoginMessage(
+      "Google login is not connected yet. Paste your Firebase config inside <strong>firebase-config.js</strong>.",
+      "error"
+    );
+
+    if (googleLoginButton) {
+      googleLoginButton.disabled = true;
+    }
+
+    return;
+  }
+
+  if (!adminEmailsAreConfigured()) {
+    setLoginMessage(
+      "Add your approved Google admin email inside <strong>ADMIN_EMAILS</strong> in firebase-config.js.",
+      "error"
+    );
+
+    if (googleLoginButton) {
+      googleLoginButton.disabled = true;
+    }
+
+    return;
+  }
+
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  provider = new GoogleAuthProvider();
+  provider.setCustomParameters({
+    prompt: "select_account"
+  });
+
+  firebaseReady = true;
+
+  onAuthStateChanged(auth, user => {
+    if (!user) {
+      showLocked();
+      return;
+    }
+
+    if (isApprovedAdmin(user.email)) {
+      unlockAdmin(user);
+    } else {
+      showLocked();
+      setLoginMessage(
+        `Signed in as <strong>${user.email}</strong>, but this email is not allowed as admin.`,
+        "error"
+      );
+      signOut(auth);
+    }
+  });
+}
+
+function isApprovedAdmin(email) {
+  return ADMIN_EMAILS.map(item => item.toLowerCase()).includes(String(email || "").toLowerCase());
+}
+
+async function signInWithGoogle() {
+  if (!firebaseReady || !auth || !provider) {
+    setLoginMessage("Google login is not ready. Check firebase-config.js.", "error");
+    return;
+  }
+
+  try {
+    setLoginMessage("Opening Google sign-in...");
+    await signInWithPopup(auth, provider);
+  } catch (error) {
+    setLoginMessage(`Google sign-in failed: ${error.message}`, "error");
+  }
+}
+
+async function signOutAdmin() {
+  if (auth) {
+    await signOut(auth);
+  }
+
+  showLocked();
+}
+
+function showLocked() {
+  adminDashboard.classList.add("hidden");
+  adminLock.classList.remove("hidden");
+  selectedOrderNumber = null;
+}
+
+function unlockAdmin(user) {
+  adminLock.classList.add("hidden");
+  adminDashboard.classList.remove("hidden");
+
+  if (user?.email) {
+    setLoginMessage(`Signed in as ${user.email}.`, "success");
+  }
+
+  renderOrders();
+}
 
 function money(value) {
   return `$${Number(value || 0).toFixed(2)}`;
@@ -34,26 +161,6 @@ function saveOrders(orders) {
 function formatDate(value) {
   if (!value) return "No date";
   return new Date(value).toLocaleString();
-}
-
-function unlockAdmin() {
-  sessionStorage.setItem("randomFitsAdminUnlocked", "true");
-  adminLock.classList.add("hidden");
-  adminDashboard.classList.remove("hidden");
-  renderOrders();
-}
-
-function lockAdminPanel() {
-  sessionStorage.removeItem("randomFitsAdminUnlocked");
-  adminDashboard.classList.add("hidden");
-  adminLock.classList.remove("hidden");
-  selectedOrderNumber = null;
-  orderDetails.innerHTML = `
-    <div class="order-details-empty">
-      <h2>Select an order</h2>
-      <p>Click an order to see customer info, items, shipping details, and label actions.</p>
-    </div>
-  `;
 }
 
 function renderStats(orders) {
@@ -85,7 +192,7 @@ function renderOrders() {
     const isActive = order.orderNumber === selectedOrderNumber ? "active" : "";
 
     return `
-      <button class="order-row ${isActive}" onclick="selectOrder('${order.orderNumber}')">
+      <button class="order-row ${isActive}" data-order="${order.orderNumber}">
         <div>
           <strong>${order.orderNumber}</strong>
           <span>${name}</span>
@@ -99,6 +206,10 @@ function renderOrders() {
       </button>
     `;
   }).join("");
+
+  document.querySelectorAll(".order-row").forEach(button => {
+    button.addEventListener("click", () => selectOrder(button.dataset.order));
+  });
 }
 
 function selectOrder(orderNumber) {
@@ -127,7 +238,7 @@ function renderOrderDetails(order) {
         <p>${formatDate(order.createdAt)}</p>
       </div>
 
-      <select class="status-select" onchange="updateStatus('${order.orderNumber}', this.value)">
+      <select class="status-select" id="statusSelect">
         <option ${order.status === "New" ? "selected" : ""}>New</option>
         <option ${order.status === "Packing" ? "selected" : ""}>Packing</option>
         <option ${order.status === "Shipped" ? "selected" : ""}>Shipped</option>
@@ -173,11 +284,19 @@ function renderOrderDetails(order) {
     </div>
 
     <div class="detail-actions">
-      <button class="primary-btn" onclick="printLabel('${order.orderNumber}')">Print Shipping Label</button>
-      <button class="secondary-btn" onclick="printPackingSlip('${order.orderNumber}')">Print Packing Slip</button>
-      <button class="secondary-btn" onclick="deleteOrder('${order.orderNumber}')">Delete Order</button>
+      <button class="primary-btn" id="printLabelButton">Print Shipping Label</button>
+      <button class="secondary-btn" id="printPackingSlipButton">Print Packing Slip</button>
+      <button class="secondary-btn" id="deleteOrderButton">Delete Order</button>
     </div>
   `;
+
+  document.getElementById("statusSelect").addEventListener("change", event => {
+    updateStatus(order.orderNumber, event.target.value);
+  });
+
+  document.getElementById("printLabelButton").addEventListener("click", () => printLabel(order.orderNumber));
+  document.getElementById("printPackingSlipButton").addEventListener("click", () => printPackingSlip(order.orderNumber));
+  document.getElementById("deleteOrderButton").addEventListener("click", () => deleteOrder(order.orderNumber));
 }
 
 function updateStatus(orderNumber, status) {
@@ -185,6 +304,7 @@ function updateStatus(orderNumber, status) {
     if (order.orderNumber === orderNumber) {
       return { ...order, status };
     }
+
     return order;
   });
 
@@ -504,23 +624,15 @@ function exportCsv() {
   URL.revokeObjectURL(url);
 }
 
-adminLoginForm.addEventListener("submit", event => {
-  event.preventDefault();
+if (googleLoginButton) {
+  googleLoginButton.addEventListener("click", signInWithGoogle);
+}
 
-  if (adminPin.value === ADMIN_PIN) {
-    unlockAdmin();
-  } else {
-    alert("Wrong PIN.");
-  }
-});
-
-lockAdmin.addEventListener("click", lockAdminPanel);
+lockAdmin.addEventListener("click", signOutAdmin);
 refreshOrders.addEventListener("click", renderOrders);
 exportOrders.addEventListener("click", exportCsv);
 printAllLabels.addEventListener("click", printAllOrderLabels);
 clearAllOrders.addEventListener("click", clearOrders);
 
-if (sessionStorage.getItem("randomFitsAdminUnlocked") === "true") {
-  unlockAdmin();
-}
+initFirebaseLogin();
 

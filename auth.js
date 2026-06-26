@@ -7,25 +7,7 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
-/* ==========================================================
-   CUSTOMER GOOGLE LOGIN SETUP
-   ----------------------------------------------------------
-   This is for the WEBSITE customer login.
-   It is separate from admin login.
-
-   Paste your Firebase config below.
-   Then any customer can sign in using Google only.
-========================================================== */
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAHU1SxhEKG7nLq1yyzT5BM5UPeTGZrhTs",
-  authDomain: "random-fits.firebaseapp.com",
-  projectId: "random-fits",
-  storageBucket: "random-fits.firebasestorage.app",
-  messagingSenderId: "502249070215",
-  appId: "1:502249070215:web:d68c1455bd3e6c75c22222",
-  measurementId: "G-FFJCHBKWMW"
-};
+import { firebaseConfig, firebaseIsConfigured } from "./firebase-config.js";
 
 let app = null;
 let auth = null;
@@ -42,19 +24,6 @@ const accountPhoto = document.getElementById("accountPhoto");
 const accountName = document.getElementById("accountName");
 const accountEmail = document.getElementById("accountEmail");
 const accountOrders = document.getElementById("accountOrders");
-
-function firebaseIsConfigured() {
-  return (
-    firebaseConfig.apiKey &&
-    firebaseConfig.authDomain &&
-    firebaseConfig.projectId &&
-    firebaseConfig.appId &&
-    !firebaseConfig.apiKey.includes("PASTE_") &&
-    !firebaseConfig.authDomain.includes("PASTE_") &&
-    !firebaseConfig.projectId.includes("PASTE_") &&
-    !firebaseConfig.appId.includes("PASTE_")
-  );
-}
 
 function setMessage(message, type = "") {
   if (!accountLoginMessage) return;
@@ -121,7 +90,7 @@ function initFirebase() {
 
 async function signInWithGoogle() {
   if (!firebaseReady || !auth || !provider) {
-    setMessage("Google login is not ready. Add Firebase config in auth.js.", "error");
+    setMessage("Google login is not ready. Add Firebase config in firebase-config.js.", "error");
     return;
   }
 
