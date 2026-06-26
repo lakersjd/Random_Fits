@@ -1,0 +1,78 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout | Random Fits</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="site-shell">
+    <header class="header">
+      <a class="brand" href="index.html">RF</a>
+      <nav class="nav">
+        <a href="index.html#shirts">[ Shirts ]</a>
+        <a href="index.html#hoodies">[ Hoodies ]</a>
+        <a href="index.html#pants">[ Pants ]</a>
+      </nav>
+      <a class="circle-btn" href="index.html">Back</a>
+    </header>
+
+    <main class="checkout-page">
+      <section class="checkout-panel">
+        <p class="micro">[ Secure Test Checkout ]</p>
+        <h1>Checkout</h1>
+
+        <form id="checkoutForm" class="checkout-form">
+          <div class="form-grid">
+            <label>First Name<input type="text" name="firstName" required></label>
+            <label>Last Name<input type="text" name="lastName" required></label>
+          </div>
+
+          <label>Email<input type="email" name="email" required></label>
+          <label>Phone<input type="tel" name="phone" required></label>
+          <label>Address<input type="text" name="address" required></label>
+
+          <div class="form-grid three">
+            <label>City<input type="text" name="city" required></label>
+            <label>State<input type="text" name="state" required></label>
+            <label>ZIP<input type="text" name="zip" required></label>
+          </div>
+
+          <label>Notes<textarea name="notes" placeholder="Apartment, delivery notes, etc."></textarea></label>
+
+          <button class="checkout-btn" type="submit">Place Test Order</button>
+        </form>
+
+        <div id="orderMessage" class="order-message"></div>
+      </section>
+
+      <section class="summary-panel">
+        <p class="micro">[ Order Summary ]</p>
+        <h2>Your Bag</h2>
+        <div id="summaryItems"></div>
+
+        <div class="total-line">
+          <span>Total</span>
+          <strong id="summaryTotal">$0.00</strong>
+        </div>
+
+        <p class="note">
+          This checkout is for testing. Real payment needs Stripe or another payment processor connected later.
+        </p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Â© 2026 Random Fits</span>
+      <span>[ Test Order Mode ]</span>
+    </footer>
+  </div>
+
+  <script src="checkout.js"></script>
+</body>
+</html>
+
