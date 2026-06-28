@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Orders | Random Fits</title>
+  <title>Admin Dashboard | Random Fits</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,6 +41,74 @@
     </section>
 
     <section class="admin-dashboard hidden" id="adminDashboard">
+      <aside class="admin-sidebar" aria-label="Admin navigation">
+        <nav class="admin-sidebar-nav">
+          <button class="admin-nav-item active" type="button" data-admin-target="home" aria-current="page">
+            <span class="admin-nav-icon" aria-hidden="true">⌂</span>
+            <span>Home</span>
+          </button>
+          <button class="admin-nav-item" type="button" data-admin-target="orders">
+            <span class="admin-nav-icon" aria-hidden="true">▣</span>
+            <span>Orders</span>
+          </button>
+          <button class="admin-nav-item" type="button" data-admin-target="products">
+            <span class="admin-nav-icon" aria-hidden="true">◇</span>
+            <span>Products</span>
+          </button>
+          <button class="admin-nav-item" type="button" data-admin-target="customers">
+            <span class="admin-nav-icon" aria-hidden="true">♙</span>
+            <span>Customers</span>
+          </button>
+          <button class="admin-nav-item" type="button" data-admin-target="analytics">
+            <span class="admin-nav-icon" aria-hidden="true">↗</span>
+            <span>Analytics</span>
+          </button>
+          <button class="admin-nav-item" type="button" data-admin-target="discounts">
+            <span class="admin-nav-icon" aria-hidden="true">%</span>
+            <span>Discounts</span>
+          </button>
+        </nav>
+      </aside>
+
+      <div class="admin-content">
+        <section class="admin-panel active" data-admin-panel="home">
+          <div class="admin-title-row">
+            <div>
+              <p class="tag">Store Dashboard</p>
+              <h1>Home</h1>
+              <p class="admin-subtitle">A quick look at what is happening across Random Fits.</p>
+            </div>
+          </div>
+
+          <div class="admin-overview-grid">
+            <button class="admin-overview-card" type="button" data-admin-jump="orders">
+              <span>Orders</span>
+              <strong id="homeOrderCount">0</strong>
+              <small>View and fulfill orders</small>
+            </button>
+            <button class="admin-overview-card" type="button" data-admin-jump="products">
+              <span>Products</span>
+              <strong id="homeProductCount">0</strong>
+              <small>Manage the store catalog</small>
+            </button>
+            <button class="admin-overview-card" type="button" data-admin-jump="analytics">
+              <span>Total sales</span>
+              <strong id="homeSalesTotal">$0.00</strong>
+              <small>See store performance</small>
+            </button>
+          </div>
+
+          <div class="admin-welcome-card">
+            <div>
+              <p class="tag">Quick Start</p>
+              <h2>Build your next drop.</h2>
+              <p>Add products and pictures, publish the catalog, then manage new orders from one place.</p>
+            </div>
+            <button class="primary-btn" type="button" data-admin-jump="products">Add a Product</button>
+          </div>
+        </section>
+
+        <section class="admin-panel" data-admin-panel="products">
       <section class="catalog-manager">
         <div class="admin-title-row catalog-title-row">
           <div>
@@ -59,7 +127,9 @@
         <div id="catalogStatus" class="catalog-status">Loading product catalog...</div>
         <div id="productEditorList" class="product-editor-list"></div>
       </section>
+        </section>
 
+        <section class="admin-panel" data-admin-panel="orders">
       <div class="admin-title-row">
         <div>
           <p class="tag">Order Manager</p>
@@ -103,6 +173,50 @@
           <div id="orderDetails" class="order-details-empty">
             <h2>Select an order</h2>
             <p>Click an order to see customer info, items, shipping details, and label actions.</p>
+          </div>
+        </section>
+      </div>
+        </section>
+
+        <section class="admin-panel" data-admin-panel="customers">
+          <div class="admin-title-row">
+            <div>
+              <p class="tag">Audience</p>
+              <h1>Customers</h1>
+              <p class="admin-subtitle">Customers are collected automatically when they place an order.</p>
+            </div>
+          </div>
+          <div class="admin-data-card" id="customersList"></div>
+        </section>
+
+        <section class="admin-panel" data-admin-panel="analytics">
+          <div class="admin-title-row">
+            <div>
+              <p class="tag">Performance</p>
+              <h1>Analytics</h1>
+              <p class="admin-subtitle">Track orders, sales, customers, and average order value.</p>
+            </div>
+          </div>
+          <div class="admin-stats analytics-stats">
+            <div><span>Total Sales</span><strong id="analyticsSales">$0.00</strong></div>
+            <div><span>Orders</span><strong id="analyticsOrders">0</strong></div>
+            <div><span>Average Order</span><strong id="analyticsAverage">$0.00</strong></div>
+            <div><span>Customers</span><strong id="analyticsCustomers">0</strong></div>
+          </div>
+        </section>
+
+        <section class="admin-panel" data-admin-panel="discounts">
+          <div class="admin-title-row">
+            <div>
+              <p class="tag">Promotions</p>
+              <h1>Discounts</h1>
+              <p class="admin-subtitle">Create and manage offers for your customers.</p>
+            </div>
+          </div>
+          <div class="admin-empty-panel">
+            <span class="admin-empty-icon">%</span>
+            <h2>No discounts yet</h2>
+            <p>Your discount codes and automatic offers will appear here.</p>
           </div>
         </section>
       </div>

@@ -47,6 +47,17 @@ const saveCatalogDraftButton = document.getElementById("saveCatalogDraft");
 const statTotalOrders = document.getElementById("statTotalOrders");
 const statNewOrders = document.getElementById("statNewOrders");
 const statSales = document.getElementById("statSales");
+const adminNavItems = document.querySelectorAll("[data-admin-target]");
+const adminPanels = document.querySelectorAll("[data-admin-panel]");
+const adminJumpButtons = document.querySelectorAll("[data-admin-jump]");
+const customersList = document.getElementById("customersList");
+const homeOrderCount = document.getElementById("homeOrderCount");
+const homeProductCount = document.getElementById("homeProductCount");
+const homeSalesTotal = document.getElementById("homeSalesTotal");
+const analyticsSales = document.getElementById("analyticsSales");
+const analyticsOrders = document.getElementById("analyticsOrders");
+const analyticsAverage = document.getElementById("analyticsAverage");
+const analyticsCustomers = document.getElementById("analyticsCustomers");
 
 let selectedOrderNumber = null;
 let firebaseReady = false;
@@ -167,6 +178,30 @@ function unlockAdmin(user) {
   loadCatalogEditor();
 }
 
+function showAdminPanel(target) {
+  const panelExists = Array.from(adminPanels).some(panel => panel.dataset.adminPanel === target);
+  if (!panelExists) return;
+
+  adminPanels.forEach(panel => {
+    panel.classList.toggle("active", panel.dataset.adminPanel === target);
+  });
+
+  adminNavItems.forEach(item => {
+    const isActive = item.dataset.adminTarget === target;
+    item.classList.toggle("active", isActive);
+    if (isActive) item.setAttribute("aria-current", "page");
+    else item.removeAttribute("aria-current");
+  });
+}
+
+adminNavItems.forEach(item => {
+  item.addEventListener("click", () => showAdminPanel(item.dataset.adminTarget));
+});
+
+adminJumpButtons.forEach(item => {
+  item.addEventListener("click", () => showAdminPanel(item.dataset.adminJump));
+});
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -281,6 +316,7 @@ async function loadCatalogEditor() {
   catalogRemoteReady = result.remoteReady;
   catalogDirty = false;
   renderCatalogEditor();
+  renderAdminInsights(getOrders());
 
   if (catalogRemoteReady) {
     setCatalogStatus(
@@ -311,6 +347,7 @@ async function publishCatalog() {
     catalogDirty = false;
     catalogRemoteReady = true;
     renderCatalogEditor();
+    renderAdminInsights(getOrders());
     setCatalogStatus("Products published. Refresh the storefront to see the changes.", "success");
   } catch (error) {
     console.error("Product publishing failed.", error);
@@ -372,6 +409,7 @@ if (productEditorList) {
     catalogProducts.splice(index, 1);
     catalogDirty = true;
     renderCatalogEditor();
+    renderAdminInsights(getOrders());
     setCatalogStatus("Product removed from the draft. Publish to make it live.");
   });
 }
@@ -381,6 +419,7 @@ if (addProductButton) {
     catalogProducts.unshift(createProductDraft());
     catalogDirty = true;
     renderCatalogEditor();
+    renderAdminInsights(getOrders());
     setCatalogStatus("New product added to the draft. Fill it out, then publish.");
   });
 }
@@ -392,6 +431,7 @@ if (saveCatalogDraftButton) {
     catalogProducts = cacheCatalog(catalogProducts);
     catalogDirty = false;
     renderCatalogEditor();
+    renderAdminInsights(getOrders());
     setCatalogStatus("Draft saved on this device.", "success");
   });
 }
@@ -423,9 +463,77 @@ function renderStats(orders) {
   statSales.textContent = money(totalSales);
 }
 
+function getUniqueCustomers(orders) {
+  const customers = new Map();
+
+  orders.forEach(order => {
+    const customer = order.customer || {};
+    const name = `${customer.firstName || ""} ${customer.lastName || ""}`.trim() || "Customer";
+    const email = String(customer.email || "").trim();
+    const key = email.toLowerCase() || `${name.toLowerCase()}-${customer.phone || ""}`;
+    const current = customers.get(key) || {
+      name,
+      email,
+      phone: customer.phone || "",
+      orders: 0,
+      spent: 0
+    };
+
+    current.orders += 1;
+    current.spent += Number(order.total || 0);
+    customers.set(key, current);
+  });
+
+  return Array.from(customers.values()).sort((a, b) => b.spent - a.spent);
+}
+
+function renderAdminInsights(orders = getOrders()) {
+  const sales = orders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+  const customers = getUniqueCustomers(orders);
+  const averageOrder = orders.length ? sales / orders.length : 0;
+
+  if (homeOrderCount) homeOrderCount.textContent = orders.length;
+  if (homeProductCount) homeProductCount.textContent = catalogProducts.length;
+  if (homeSalesTotal) homeSalesTotal.textContent = money(sales);
+  if (analyticsSales) analyticsSales.textContent = money(sales);
+  if (analyticsOrders) analyticsOrders.textContent = orders.length;
+  if (analyticsAverage) analyticsAverage.textContent = money(averageOrder);
+  if (analyticsCustomers) analyticsCustomers.textContent = customers.length;
+
+  if (!customersList) return;
+
+  if (customers.length === 0) {
+    customersList.innerHTML = `
+      <div class="admin-empty-panel">
+        <span class="admin-empty-icon">♙</span>
+        <h2>No customers yet</h2>
+        <p>Customer profiles will appear after the first order is placed.</p>
+      </div>
+    `;
+    return;
+  }
+
+  customersList.innerHTML = `
+    <div class="admin-data-head">
+      <span>Customer</span><span>Orders</span><span>Total spent</span>
+    </div>
+    ${customers.map(customer => `
+      <div class="admin-customer-row">
+        <div>
+          <strong>${escapeHtml(customer.name)}</strong>
+          <small>${escapeHtml(customer.email || customer.phone || "No contact information")}</small>
+        </div>
+        <span>${customer.orders}</span>
+        <strong>${money(customer.spent)}</strong>
+      </div>
+    `).join("")}
+  `;
+}
+
 function renderOrders() {
   const orders = getOrders();
   renderStats(orders);
+  renderAdminInsights(orders);
 
   if (orders.length === 0) {
     ordersList.innerHTML = `
