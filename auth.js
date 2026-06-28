@@ -71,12 +71,12 @@ function ensureProfileMenu() {
       <span id="profileDropdownEmail"></span>
     </div>
     <nav aria-label="Account menu">
-      <a href="account.html#signedInCard"><span>◯</span>Profile</a>
-      <a href="account.html#accountOrdersCard"><span>▣</span>Orders</a>
-      <a href="account.html#accountWishlistCard"><span>♡</span>Wishlist</a>
-      <a href="account.html#accountAddressesCard"><span>⌂</span>Addresses</a>
-      <a href="account.html#accountSettingsCard"><span>⚙</span>Settings</a>
-      <a class="profile-admin-link hidden" href="admin.html" id="profileAdminLink"><span>◆</span>Admin Dashboard</a>
+      <a href="account.html#signedInCard">Profile</a>
+      <a href="account.html#accountOrdersCard">Orders</a>
+      <a href="account.html#accountWishlistCard">Wishlist</a>
+      <a href="account.html#accountAddressesCard">Addresses</a>
+      <a href="account.html#accountSettingsCard">Settings</a>
+      <a class="profile-admin-link hidden" href="admin.html" id="profileAdminLink">Admin Dashboard</a>
     </nav>
     <button class="profile-dropdown-signout" type="button" id="profileDropdownSignOut">Sign Out</button>
   `;

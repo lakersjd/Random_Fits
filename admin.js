@@ -285,7 +285,7 @@ function renderAdminReviews() {
   if (!adminReviewList) return;
   const reviews = getAllReviews();
   if (!reviews.length) {
-    adminReviewList.innerHTML = `<div class="admin-empty-panel"><span class="admin-empty-icon">★</span><h2>No reviews yet</h2><p>Customer product reviews will appear here.</p></div>`;
+    adminReviewList.innerHTML = `<div class="admin-empty-panel"><h2>No reviews yet</h2><p>Customer product reviews will appear here.</p></div>`;
     return;
   }
 
@@ -685,7 +685,6 @@ function renderAdminInsights(orders = getOrders()) {
   if (customers.length === 0) {
     customersList.innerHTML = `
       <div class="admin-empty-panel">
-        <span class="admin-empty-icon">♙</span>
         <h2>No customers yet</h2>
         <p>Customer profiles will appear after the first order is placed.</p>
       </div>

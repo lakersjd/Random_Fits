@@ -1110,16 +1110,6 @@ input:-webkit-autofill:focus {
   background: #fff;
 }
 
-.admin-nav-icon {
-  width: 22px;
-  height: 22px;
-  display: grid;
-  place-items: center;
-  flex: 0 0 22px;
-  font-size: 18px;
-  line-height: 1;
-}
-
 .admin-content {
   min-width: 0;
 }
@@ -1774,10 +1764,6 @@ input:-webkit-autofill:focus {
     min-width: max-content;
   }
 
-  .admin-nav-icon {
-    display: none;
-  }
-
   .admin-welcome-card {
     align-items: stretch;
     flex-direction: column;
@@ -2154,17 +2140,6 @@ input:-webkit-autofill:focus {
   color: #fff;
 }
 
-.profile-dropdown nav .profile-admin-link span {
-  color: #f5c451;
-}
-
-.profile-dropdown nav a span {
-  width: 20px;
-  color: var(--text);
-  text-align: center;
-  font-size: 16px;
-}
-
 .profile-dropdown-signout {
   width: 100%;
   min-height: 42px;
@@ -2284,15 +2259,19 @@ textarea {
   z-index: 3;
   top: 20px;
   right: 20px;
-  width: 40px;
+  width: auto;
+  min-width: 54px;
   height: 40px;
-  padding: 0;
+  padding: 0 12px;
   border: 1px solid rgba(255,255,255,.2);
   border-radius: 50%;
   background: rgba(8,8,8,.78);
   backdrop-filter: blur(12px);
   color: #fff;
-  font-size: 20px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .05em;
+  text-transform: uppercase;
   cursor: pointer;
 }
 

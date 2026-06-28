@@ -70,7 +70,7 @@ function renderProducts() {
     const wished = wishlist.map(String).includes(String(product.id));
     return `
     <article class="product-card" data-category="${escapeHtml(product.category)}" data-product-url="${escapeHtml(productUrl)}">
-      <button class="wishlist-button ${wished ? "active" : ""}" type="button" data-wishlist-product="${escapeHtml(product.id)}" aria-label="${wished ? "Remove from" : "Add to"} wishlist">${wished ? "♥" : "♡"}</button>
+      <button class="wishlist-button ${wished ? "active" : ""}" type="button" data-wishlist-product="${escapeHtml(product.id)}" aria-label="${wished ? "Remove from" : "Add to"} wishlist">${wished ? "Saved" : "Save"}</button>
       ${soldOut ? `<span class="product-stock-badge">Sold out</span>` : ""}
       <a class="product-card-image-link" href="${escapeHtml(productUrl)}" aria-label="View ${escapeHtml(product.name)}">
         ${image}

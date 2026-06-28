@@ -294,7 +294,7 @@ function renderInventory(product) {
 function renderWishlistButton() {
   const wished = wishlist.map(String).includes(String(currentProduct?.id));
   productWishlist.classList.toggle("active", wished);
-  productWishlist.textContent = wished ? "♥ Saved to Wishlist" : "♡ Add to Wishlist";
+  productWishlist.textContent = wished ? "Saved to Wishlist" : "Add to Wishlist";
 }
 
 function toggleCurrentWishlist() {
