@@ -2147,6 +2147,17 @@ input:-webkit-autofill:focus {
   color: var(--text);
 }
 
+.profile-dropdown nav .profile-admin-link {
+  margin-top: 5px;
+  border-top: 1px solid var(--line);
+  border-radius: 0 0 11px 11px;
+  color: #fff;
+}
+
+.profile-dropdown nav .profile-admin-link span {
+  color: #f5c451;
+}
+
 .profile-dropdown nav a span {
   width: 20px;
   color: var(--text);

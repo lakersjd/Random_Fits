@@ -13,7 +13,7 @@ import {
   deleteUser
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
-import { firebaseConfig, firebaseIsConfigured } from "./firebase-config.js";
+import { ADMIN_EMAILS, firebaseConfig, firebaseIsConfigured } from "./firebase-config.js";
 
 let app = null;
 let auth = null;
@@ -76,6 +76,7 @@ function ensureProfileMenu() {
       <a href="account.html#accountWishlistCard"><span>♡</span>Wishlist</a>
       <a href="account.html#accountAddressesCard"><span>⌂</span>Addresses</a>
       <a href="account.html#accountSettingsCard"><span>⚙</span>Settings</a>
+      <a class="profile-admin-link hidden" href="admin.html" id="profileAdminLink"><span>◆</span>Admin Dashboard</a>
     </nav>
     <button class="profile-dropdown-signout" type="button" id="profileDropdownSignOut">Sign Out</button>
   `;
@@ -117,8 +118,13 @@ function updateProfileMenu(customer) {
   if (!menu || !customer) return;
   const name = menu.querySelector("#profileDropdownName");
   const email = menu.querySelector("#profileDropdownEmail");
+  const adminLink = menu.querySelector("#profileAdminLink");
   if (name) name.textContent = customer.displayName || customer.name || "Customer";
   if (email) email.textContent = customer.email || "";
+  if (adminLink) {
+    const isAdmin = ADMIN_EMAILS.some(adminEmail => adminEmail.toLowerCase() === String(customer.email || "").toLowerCase());
+    adminLink.classList.toggle("hidden", !isAdmin);
+  }
 }
 
 function scrollToAccountHash() {
