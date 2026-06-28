@@ -224,7 +224,7 @@ function renderCatalogEditor() {
           Upload Picture
           <input type="file" accept="image/*" data-image-upload hidden>
         </label>
-        <small>Uploads require Firebase Storage. You can always paste an image URL.</small>
+        <small>Best size: 1200 × 1500 px (4:5), JPG or WebP, under 2 MB. Uploads require Firebase Storage; image URLs work without it.</small>
       </div>
 
       <div class="product-editor-fields">
@@ -296,6 +296,11 @@ async function loadCatalogEditor() {
 }
 
 async function publishCatalog() {
+  if (catalogProducts.length === 0) {
+    setCatalogStatus("Add at least one product before publishing.", "error");
+    return;
+  }
+
   const invalid = catalogProducts.find(product => !String(product.name || "").trim() || Number(product.price) < 0);
   if (invalid) {
     setCatalogStatus("Every product needs a name and a valid price.", "error");

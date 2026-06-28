@@ -52,7 +52,9 @@ function normalizeProduct(product, index = 0) {
 }
 
 export function normalizeCatalog(products) {
-  if (!Array.isArray(products)) return DEFAULT_PRODUCTS.map(product => ({ ...product }));
+  if (!Array.isArray(products) || products.length === 0) {
+    return DEFAULT_PRODUCTS.map(product => ({ ...product }));
+  }
   return products.slice(0, 100).map(normalizeProduct);
 }
 
