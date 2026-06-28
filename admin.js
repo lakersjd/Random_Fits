@@ -409,7 +409,7 @@ function renderCatalogEditor() {
           Upload Picture
           <input type="file" accept="image/*" data-image-upload hidden>
         </label>
-        <small>Best size: 1200 × 1500 px (4:5), JPG or WebP, under 2 MB. Uploads require Firebase Storage; image URLs work without it.</small>
+        <small>Best size: 1200 × 1500 px (4:5), JPG or WebP, under 2 MB. Free mode compresses uploads into the catalog; public image URLs also work.</small>
       </div>
 
       <div class="product-editor-fields">
@@ -523,7 +523,13 @@ async function publishCatalog() {
     setCatalogStatus("Products published. Refresh the storefront to see the changes.", "success");
   } catch (error) {
     console.error("Product publishing failed.", error);
-    setCatalogStatus("Saved as a local draft, but Firebase publishing failed. Enable Firestore and its catalog rules, then try again.", "error");
+    const message = String(error?.message || "");
+    setCatalogStatus(
+      message.includes("free catalog image limit")
+        ? message
+        : "Saved as a local draft, but Firebase publishing failed. Check Firestore and try again.",
+      "error"
+    );
   } finally {
     saveCatalogButton.disabled = false;
   }
@@ -571,10 +577,10 @@ if (productEditorList) {
       product.imageUrl = await uploadCatalogImage(product.id, file);
       catalogDirty = true;
       renderCatalogEditor();
-      setCatalogStatus("Picture uploaded. Click Publish Products to save the catalog.", "success");
+      setCatalogStatus("Picture ready. Click Publish Products to make it live.", "success");
     } catch (error) {
       console.error("Image upload failed.", error);
-      setCatalogStatus("Picture upload failed. Enable Firebase Storage or paste a public image URL instead.", "error");
+      setCatalogStatus(error.message || "Picture processing failed. Try a smaller JPG or WebP image.", "error");
     }
   });
 

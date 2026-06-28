@@ -70,7 +70,7 @@ function normalizeProduct(product, index = 0) {
     color: String(product?.color || "Black").trim().slice(0, 50),
     price: Number.isFinite(parsedPrice) && parsedPrice >= 0 ? Math.round(parsedPrice * 100) / 100 : 0,
     type,
-    imageUrl: String(product?.imageUrl || "").trim().slice(0, 2000),
+    imageUrl: String(product?.imageUrl || "").trim().slice(0, 240000),
     imageUrls: normalizeList(product?.imageUrls, 8, 2000),
     description: String(product?.description || "").trim().slice(0, 3000),
     colors: normalizeList(product?.colors, 12, 50),
@@ -160,6 +160,10 @@ export async function loadCatalog() {
 
 export async function saveCatalog(products) {
   const normalized = cacheCatalog(products);
+  const catalogSize = new Blob([JSON.stringify(normalized)]).size;
+  if (catalogSize > 900000) {
+    throw new Error("The free catalog image limit was reached. Use smaller images or public image URLs.");
+  }
   const database = getFirestore(getFirebaseApp());
 
   await setDoc(doc(database, CATALOG_COLLECTION, CATALOG_DOCUMENT), {
@@ -201,13 +205,53 @@ export async function uploadCatalogImage(productId, file) {
     throw new Error("Images must be smaller than 8 MB.");
   }
 
-  const safeName = String(file.name || "product-image")
-    .toLowerCase()
-    .replace(/[^a-z0-9._-]+/g, "-")
-    .slice(-100);
-  const path = `products/${String(productId).replace(/[^a-zA-Z0-9_-]/g, "-")}/${Date.now()}-${safeName}`;
-  const reference = storageRef(getStorage(getFirebaseApp()), path);
+  try {
+    const safeName = String(file.name || "product-image")
+      .toLowerCase()
+      .replace(/[^a-z0-9._-]+/g, "-")
+      .slice(-100);
+    const path = `products/${String(productId).replace(/[^a-zA-Z0-9_-]/g, "-")}/${Date.now()}-${safeName}`;
+    const reference = storageRef(getStorage(getFirebaseApp()), path);
 
-  await uploadBytes(reference, file, { contentType: file.type });
-  return getDownloadURL(reference);
+    await uploadBytes(reference, file, { contentType: file.type });
+    return getDownloadURL(reference);
+  } catch (error) {
+    console.info("Firebase Storage is unavailable; using compressed Firestore image mode.", error);
+    return compressImageForFreeCatalog(file);
+  }
+}
+
+function readImageFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("The image could not be read."));
+    reader.onload = () => {
+      const image = new Image();
+      image.onerror = () => reject(new Error("The selected file is not a supported image."));
+      image.onload = () => resolve(image);
+      image.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function compressImageForFreeCatalog(file) {
+  const image = await readImageFile(file);
+  const maximumWidth = 900;
+  const maximumHeight = 1125;
+  const scale = Math.min(1, maximumWidth / image.naturalWidth, maximumHeight / image.naturalHeight);
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+  canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+  const context = canvas.getContext("2d", { alpha: false });
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+  for (const quality of [0.72, 0.62, 0.52, 0.42]) {
+    const dataUrl = canvas.toDataURL("image/webp", quality);
+    if (dataUrl.length <= 220000) return dataUrl;
+  }
+
+  throw new Error("This picture is still too large after compression. Choose a smaller image.");
 }
