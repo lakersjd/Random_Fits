@@ -8,7 +8,9 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  updateProfile,
+  deleteUser
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
 import { firebaseConfig, firebaseIsConfigured } from "./firebase-config.js";
@@ -34,6 +36,25 @@ const accountSettingsMessage = document.getElementById("accountSettingsMessage")
 const preferredSize = document.getElementById("preferredSize");
 const savedPhone = document.getElementById("savedPhone");
 const orderUpdates = document.getElementById("orderUpdates");
+const savedDisplayName = document.getElementById("savedDisplayName");
+const promotionUpdates = document.getElementById("promotionUpdates");
+const stockUpdates = document.getElementById("stockUpdates");
+const notificationSettingsForm = document.getElementById("notificationSettingsForm");
+const notificationSettingsMessage = document.getElementById("notificationSettingsMessage");
+const accountAddressesCard = document.getElementById("accountAddressesCard");
+const accountWishlistCard = document.getElementById("accountWishlistCard");
+const notificationSettingsCard = document.getElementById("notificationSettingsCard");
+const accountSecurityCard = document.getElementById("accountSecurityCard");
+const savedAddresses = document.getElementById("savedAddresses");
+const addressBookForm = document.getElementById("addressBookForm");
+const addressBookMessage = document.getElementById("addressBookMessage");
+const accountWishlist = document.getElementById("accountWishlist");
+const deleteCustomerAccount = document.getElementById("deleteCustomerAccount");
+const accountSecurityMessage = document.getElementById("accountSecurityMessage");
+
+function notify(message, type = "info", title = "") {
+  globalThis.RandomFitsUI?.notify(message, { type, title });
+}
 
 function setMessage(message, type = "") {
   if (!accountLoginMessage) return;
@@ -54,9 +75,9 @@ function saveCustomer(user) {
 
   localStorage.setItem("randomFitsCustomer", JSON.stringify({
     uid: user.uid,
-    name: user.displayName || "Customer",
+    name: user.displayName || user.name || "Customer",
     email: user.email || "",
-    photo: user.photoURL || ""
+    photo: user.photoURL || user.photo || ""
   }));
 }
 
@@ -85,9 +106,12 @@ function getAccountSettings() {
 function renderAccountSettings() {
   if (!accountSettingsForm) return;
   const settings = getAccountSettings();
+  if (savedDisplayName) savedDisplayName.value = settings.displayName || getSavedCustomer()?.name || "";
   if (preferredSize) preferredSize.value = settings.preferredSize || "M";
   if (savedPhone) savedPhone.value = settings.phone || "";
   if (orderUpdates) orderUpdates.checked = settings.orderUpdates !== false;
+  if (promotionUpdates) promotionUpdates.checked = Boolean(settings.promotionUpdates);
+  if (stockUpdates) stockUpdates.checked = settings.stockUpdates !== false;
 }
 
 function prefillCheckout(user) {
@@ -146,9 +170,16 @@ async function signInWithGoogle() {
 
   try {
     setMessage("Opening Google sign-in...");
-    await signInWithPopup(auth, provider);
+    const result = await signInWithPopup(auth, provider);
+    const isNewCustomer = Boolean(result?._tokenResponse?.isNewUser);
+    notify(
+      isNewCustomer ? "Your Random Fits account is ready." : "Welcome back to Random Fits.",
+      "success",
+      isNewCustomer ? "Signup successful" : "Login successful"
+    );
   } catch (error) {
     setMessage(`Google sign-in failed: ${error.message}`, "error");
+    notify("Google sign-in could not be completed.", "error", "Login failed");
   }
 }
 
@@ -159,6 +190,7 @@ async function signOutCustomer() {
 
   saveCustomer(null);
   renderSignedOut();
+  notify("You have been signed out.", "info", "Signed out");
 }
 
 function renderSavedCustomer() {
@@ -169,6 +201,7 @@ function renderSavedCustomer() {
     if (signedOutCard) signedOutCard.classList.add("hidden");
     if (signedInCard) signedInCard.classList.remove("hidden");
     if (accountSettingsCard) accountSettingsCard.classList.remove("hidden");
+    [accountAddressesCard, accountWishlistCard, notificationSettingsCard, accountSecurityCard].forEach(card => card?.classList.remove("hidden"));
     if (accountName) accountName.textContent = customer.name || "Customer";
     if (accountEmail) accountEmail.textContent = customer.email || "";
     if (accountPhoto) {
@@ -178,6 +211,8 @@ function renderSavedCustomer() {
   }
 
   renderAccountSettings();
+  renderSavedAddresses();
+  renderWishlist();
   renderAccountOrders();
 }
 
@@ -187,6 +222,7 @@ function renderSignedIn(user) {
   if (signedOutCard) signedOutCard.classList.add("hidden");
   if (signedInCard) signedInCard.classList.remove("hidden");
   if (accountSettingsCard) accountSettingsCard.classList.remove("hidden");
+  [accountAddressesCard, accountWishlistCard, notificationSettingsCard, accountSecurityCard].forEach(card => card?.classList.remove("hidden"));
 
   if (accountName) accountName.textContent = user.displayName || "Customer";
   if (accountEmail) accountEmail.textContent = user.email || "";
@@ -197,6 +233,8 @@ function renderSignedIn(user) {
 
   setMessage(`Signed in as ${user.email}.`, "success");
   renderAccountSettings();
+  renderSavedAddresses();
+  renderWishlist();
   prefillCheckout(user);
   renderAccountOrders();
 }
@@ -207,12 +245,78 @@ function renderSignedOut() {
   if (signedOutCard) signedOutCard.classList.remove("hidden");
   if (signedInCard) signedInCard.classList.add("hidden");
   if (accountSettingsCard) accountSettingsCard.classList.add("hidden");
+  [accountAddressesCard, accountWishlistCard, notificationSettingsCard, accountSecurityCard].forEach(card => card?.classList.add("hidden"));
 
   renderAccountOrders();
 }
 
 function money(value) {
   return `$${Number(value || 0).toFixed(2)}`;
+}
+
+function customerStorageKey(name) {
+  const email = getSavedCustomer()?.email?.toLowerCase() || "guest";
+  return `randomFits${name}:${email}`;
+}
+
+function getSavedAddresses() {
+  try {
+    const addresses = JSON.parse(localStorage.getItem(customerStorageKey("Addresses")));
+    return Array.isArray(addresses) ? addresses : [];
+  } catch {
+    return [];
+  }
+}
+
+function renderSavedAddresses() {
+  if (!savedAddresses) return;
+  const addresses = getSavedAddresses();
+  if (!addresses.length) {
+    savedAddresses.innerHTML = `<p class="note">No saved addresses yet.</p>`;
+    return;
+  }
+
+  savedAddresses.innerHTML = addresses.map(address => `
+    <article class="saved-address-card">
+      <div><strong>${escapeHtml(address.label)}</strong><p>${escapeHtml(address.address)}</p><p>${escapeHtml(address.city)}, ${escapeHtml(address.state)} ${escapeHtml(address.zip)}</p></div>
+      <button class="remove-summary-item" type="button" data-delete-address="${escapeHtml(address.id)}">Remove</button>
+    </article>
+  `).join("");
+}
+
+function renderWishlist() {
+  if (!accountWishlist) return;
+  const ids = JSON.parse(localStorage.getItem("randomFitsWishlist") || "[]").map(String);
+  let catalog = [];
+  try {
+    catalog = JSON.parse(localStorage.getItem("randomFitsCatalog")) || [];
+  } catch {
+    catalog = [];
+  }
+  const products = catalog.filter(product => ids.includes(String(product.id)));
+
+  if (!products.length) {
+    accountWishlist.innerHTML = `<p class="note">Your wishlist is empty. Save products from the shop or product page.</p>`;
+    return;
+  }
+
+  accountWishlist.innerHTML = products.map(product => `
+    <article class="wishlist-row">
+      ${product.imageUrl ? `<img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name)}">` : `<div class="wishlist-image-empty">No image</div>`}
+      <div><a href="product.html?id=${encodeURIComponent(product.id)}"><strong>${escapeHtml(product.name)}</strong></a><span>${money(product.price)}</span></div>
+      <button class="remove-summary-item" type="button" data-remove-wishlist="${escapeHtml(product.id)}">Remove</button>
+    </article>
+  `).join("");
+}
+
+function orderTrackingHtml(status) {
+  const steps = ["New", "Packing", "Shipped"];
+  const current = steps.indexOf(status);
+  if (status === "Cancelled") return `<div class="order-tracking cancelled"><strong>Order cancelled</strong><span>This order will not be shipped.</span></div>`;
+
+  return `<div class="order-tracking" aria-label="Order tracking">
+    ${steps.map((step, index) => `<div class="${index <= Math.max(0, current) ? "complete" : ""}"><span></span><small>${step}</small></div>`).join("")}
+  </div>`;
 }
 
 function renderAccountOrders() {
@@ -253,6 +357,8 @@ function renderAccountOrders() {
         `).join("")}
       </div>
 
+      ${orderTrackingHtml(order.status || "New")}
+
       <div class="account-order-shipping">
         <span>Ship to</span>
         <p>${escapeHtml(order.shipping?.address || "")}</p>
@@ -285,6 +391,7 @@ function cancelCustomerOrder(orderNumber) {
   order.cancelledAt = new Date().toISOString();
   localStorage.setItem("randomFitsOrders", JSON.stringify(orders));
   renderAccountOrders();
+  notify(`Order ${orderNumber} was cancelled.`, "success", "Order updated");
 }
 
 if (customerAuthButton) {
@@ -308,10 +415,12 @@ if (accountSignOut) {
 }
 
 if (accountSettingsForm) {
-  accountSettingsForm.addEventListener("submit", event => {
+  accountSettingsForm.addEventListener("submit", async event => {
     event.preventDefault();
 
     const settings = {
+      ...getAccountSettings(),
+      displayName: savedDisplayName?.value.trim() || getSavedCustomer()?.name || "Customer",
       preferredSize: preferredSize?.value || "M",
       phone: savedPhone?.value.trim() || "",
       orderUpdates: Boolean(orderUpdates?.checked)
@@ -319,9 +428,100 @@ if (accountSettingsForm) {
 
     const email = getSavedCustomer()?.email?.toLowerCase() || "guest";
     localStorage.setItem(`randomFitsAccountSettings:${email}`, JSON.stringify(settings));
-    if (accountSettingsMessage) {
-      accountSettingsMessage.textContent = "Settings saved on this device.";
-      accountSettingsMessage.classList.add("success");
+    const customer = getSavedCustomer();
+    if (customer) saveCustomer({ ...customer, displayName: settings.displayName });
+
+    try {
+      if (auth?.currentUser && auth.currentUser.displayName !== settings.displayName) {
+        await updateProfile(auth.currentUser, { displayName: settings.displayName });
+      }
+      if (accountName) accountName.textContent = settings.displayName;
+      if (accountSettingsMessage) {
+        accountSettingsMessage.textContent = "Profile saved.";
+        accountSettingsMessage.classList.add("success");
+      }
+      notify("Your profile information was updated.", "success", "Profile saved");
+    } catch (error) {
+      if (accountSettingsMessage) accountSettingsMessage.textContent = "Your local profile was saved, but Google could not be updated.";
+      notify("Some profile changes could not be synced.", "error", "Profile error");
+    }
+  });
+}
+
+if (notificationSettingsForm) {
+  notificationSettingsForm.addEventListener("submit", event => {
+    event.preventDefault();
+    const email = getSavedCustomer()?.email?.toLowerCase() || "guest";
+    const settings = {
+      ...getAccountSettings(),
+      orderUpdates: Boolean(orderUpdates?.checked),
+      promotionUpdates: Boolean(promotionUpdates?.checked),
+      stockUpdates: Boolean(stockUpdates?.checked)
+    };
+    localStorage.setItem(`randomFitsAccountSettings:${email}`, JSON.stringify(settings));
+    if (notificationSettingsMessage) notificationSettingsMessage.textContent = "Notification preferences saved.";
+    notify("Your notification preferences were updated.", "success", "Preferences saved");
+  });
+}
+
+if (addressBookForm) {
+  addressBookForm.addEventListener("submit", event => {
+    event.preventDefault();
+    const addresses = getSavedAddresses();
+    addresses.push({
+      id: globalThis.crypto?.randomUUID?.() || `address-${Date.now()}`,
+      label: document.getElementById("addressLabel").value.trim(),
+      address: document.getElementById("accountAddress").value.trim(),
+      city: document.getElementById("accountCity").value.trim(),
+      state: document.getElementById("accountState").value.trim(),
+      zip: document.getElementById("accountZip").value.trim()
+    });
+    localStorage.setItem(customerStorageKey("Addresses"), JSON.stringify(addresses.slice(0, 10)));
+    addressBookForm.reset();
+    if (addressBookMessage) addressBookMessage.textContent = "Address saved.";
+    renderSavedAddresses();
+    notify("A delivery address was added.", "success", "Address saved");
+  });
+}
+
+if (savedAddresses) {
+  savedAddresses.addEventListener("click", event => {
+    const button = event.target.closest("[data-delete-address]");
+    if (!button) return;
+    const addresses = getSavedAddresses().filter(address => address.id !== button.dataset.deleteAddress);
+    localStorage.setItem(customerStorageKey("Addresses"), JSON.stringify(addresses));
+    renderSavedAddresses();
+    notify("The saved address was removed.", "info", "Address removed");
+  });
+}
+
+if (accountWishlist) {
+  accountWishlist.addEventListener("click", event => {
+    const button = event.target.closest("[data-remove-wishlist]");
+    if (!button) return;
+    const ids = JSON.parse(localStorage.getItem("randomFitsWishlist") || "[]")
+      .filter(id => String(id) !== String(button.dataset.removeWishlist));
+    localStorage.setItem("randomFitsWishlist", JSON.stringify(ids));
+    renderWishlist();
+    notify("The product was removed from your wishlist.", "info", "Wishlist updated");
+  });
+}
+
+if (deleteCustomerAccount) {
+  deleteCustomerAccount.addEventListener("click", async () => {
+    if (!confirm("Delete your Random Fits account data? This cannot be undone.")) return;
+    try {
+      const email = getSavedCustomer()?.email?.toLowerCase() || "guest";
+      if (auth?.currentUser) await deleteUser(auth.currentUser);
+      localStorage.removeItem(`randomFitsAccountSettings:${email}`);
+      localStorage.removeItem(customerStorageKey("Addresses"));
+      localStorage.removeItem("randomFitsWishlist");
+      saveCustomer(null);
+      renderSignedOut();
+      notify("Your Random Fits account was deleted.", "success", "Account deleted");
+    } catch (error) {
+      if (accountSecurityMessage) accountSecurityMessage.textContent = "Please sign out, sign in again, and retry account deletion.";
+      notify("Google requires a recent login before account deletion.", "error", "Delete account failed");
     }
   });
 }

@@ -19,9 +19,12 @@ import {
 } from "./firebase-config.js";
 import {
   cacheCatalog,
+  getCachedStoreSettings,
   loadCatalog,
+  loadStoreSettings,
   normalizeCatalog,
   saveCatalog,
+  saveStoreSettings,
   uploadCatalogImage
 } from "./catalog.js";
 
@@ -58,6 +61,10 @@ const analyticsSales = document.getElementById("analyticsSales");
 const analyticsOrders = document.getElementById("analyticsOrders");
 const analyticsAverage = document.getElementById("analyticsAverage");
 const analyticsCustomers = document.getElementById("analyticsCustomers");
+const contentSettingsForm = document.getElementById("contentSettingsForm");
+const storeSettingsForm = document.getElementById("storeSettingsForm");
+const discountSettingsForm = document.getElementById("discountSettingsForm");
+const adminReviewList = document.getElementById("adminReviewList");
 
 let selectedOrderNumber = null;
 let firebaseReady = false;
@@ -67,6 +74,11 @@ let provider = null;
 let catalogProducts = [];
 let catalogDirty = false;
 let catalogRemoteReady = false;
+let storeSettings = getCachedStoreSettings();
+
+function notify(message, type = "info", title = "") {
+  globalThis.RandomFitsUI?.notify(message, { type, title });
+}
 
 function setLoginMessage(message, type = "") {
   if (!adminLoginMessage) return;
@@ -176,6 +188,8 @@ function unlockAdmin(user) {
 
   renderOrders();
   loadCatalogEditor();
+  loadAdminStoreSettings();
+  renderAdminReviews();
 }
 
 function showAdminPanel(target) {
@@ -201,6 +215,137 @@ adminNavItems.forEach(item => {
 adminJumpButtons.forEach(item => {
   item.addEventListener("click", () => showAdminPanel(item.dataset.adminJump));
 });
+
+function fillAdminSettings() {
+  const values = {
+    announcementEnabled: storeSettings.announcementEnabled,
+    announcementText: storeSettings.announcementText,
+    settingHomeTag: storeSettings.homeTag,
+    settingHomeTitle: storeSettings.homeTitle,
+    settingHomeText: storeSettings.homeText,
+    alertsEnabled: storeSettings.alertsEnabled,
+    supportEmail: storeSettings.supportEmail,
+    lowStockThreshold: storeSettings.lowStockThreshold,
+    shippingMessage: storeSettings.shippingMessage,
+    returnsMessage: storeSettings.returnsMessage,
+    discountEnabled: storeSettings.discountEnabled,
+    discountCode: storeSettings.discountCode,
+    discountPercent: storeSettings.discountPercent
+  };
+
+  Object.entries(values).forEach(([id, value]) => {
+    const input = document.getElementById(id);
+    if (!input) return;
+    if (input.type === "checkbox") input.checked = Boolean(value);
+    else input.value = value ?? "";
+  });
+}
+
+async function loadAdminStoreSettings() {
+  const result = await loadStoreSettings();
+  storeSettings = result.settings;
+  fillAdminSettings();
+}
+
+async function persistStoreSettings(nextSettings, statusId, successMessage) {
+  const status = document.getElementById(statusId);
+  storeSettings = { ...storeSettings, ...nextSettings };
+  if (status) status.textContent = "Saving settings...";
+  try {
+    storeSettings = await saveStoreSettings(storeSettings);
+    if (status) {
+      status.textContent = successMessage;
+      status.classList.add("success");
+      status.classList.remove("error");
+    }
+    notify(successMessage, "success", "Settings published");
+  } catch (error) {
+    console.error("Store settings could not be published.", error);
+    localStorage.setItem("randomFitsStoreSettings", JSON.stringify(storeSettings));
+    if (status) {
+      status.textContent = "Saved on this device, but Firebase publishing failed.";
+      status.classList.add("error");
+      status.classList.remove("success");
+    }
+    notify("Settings were saved locally but could not be published.", "error", "Publishing failed");
+  }
+  fillAdminSettings();
+}
+
+function getAllReviews() {
+  try {
+    const reviews = JSON.parse(localStorage.getItem("randomFitsReviews"));
+    return Array.isArray(reviews) ? reviews : [];
+  } catch {
+    return [];
+  }
+}
+
+function renderAdminReviews() {
+  if (!adminReviewList) return;
+  const reviews = getAllReviews();
+  if (!reviews.length) {
+    adminReviewList.innerHTML = `<div class="admin-empty-panel"><span class="admin-empty-icon">★</span><h2>No reviews yet</h2><p>Customer product reviews will appear here.</p></div>`;
+    return;
+  }
+
+  adminReviewList.innerHTML = reviews.map(review => `
+    <article class="admin-review-row">
+      <div><span class="stars">${"★".repeat(Number(review.rating || 0))}${"☆".repeat(5 - Number(review.rating || 0))}</span><strong>${escapeHtml(review.productName || "Product")}</strong><small>${escapeHtml(review.name || "Customer")} · ${new Date(review.createdAt).toLocaleDateString()}</small><p>${escapeHtml(review.text)}</p></div>
+      <div class="admin-review-actions"><button class="secondary-btn" type="button" data-review-action="toggle" data-review-id="${escapeHtml(review.id)}">${review.status === "hidden" ? "Publish" : "Hide"}</button><button class="danger-btn" type="button" data-review-action="delete" data-review-id="${escapeHtml(review.id)}">Delete</button></div>
+    </article>
+  `).join("");
+}
+
+if (contentSettingsForm) {
+  contentSettingsForm.addEventListener("submit", event => {
+    event.preventDefault();
+    persistStoreSettings({
+      announcementEnabled: document.getElementById("announcementEnabled").checked,
+      announcementText: document.getElementById("announcementText").value.trim(),
+      homeTag: document.getElementById("settingHomeTag").value.trim(),
+      homeTitle: document.getElementById("settingHomeTitle").value.trim(),
+      homeText: document.getElementById("settingHomeText").value.trim()
+    }, "contentSettingsStatus", "Homepage content published.");
+  });
+}
+
+if (storeSettingsForm) {
+  storeSettingsForm.addEventListener("submit", event => {
+    event.preventDefault();
+    persistStoreSettings({
+      alertsEnabled: document.getElementById("alertsEnabled").checked,
+      supportEmail: document.getElementById("supportEmail").value.trim(),
+      lowStockThreshold: Number(document.getElementById("lowStockThreshold").value),
+      shippingMessage: document.getElementById("shippingMessage").value.trim(),
+      returnsMessage: document.getElementById("returnsMessage").value.trim()
+    }, "storeSettingsStatus", "Store settings published.");
+  });
+}
+
+if (discountSettingsForm) {
+  discountSettingsForm.addEventListener("submit", event => {
+    event.preventDefault();
+    persistStoreSettings({
+      discountEnabled: document.getElementById("discountEnabled").checked,
+      discountCode: document.getElementById("discountCode").value.trim(),
+      discountPercent: Number(document.getElementById("discountPercent").value)
+    }, "discountSettingsStatus", "Discount settings published.");
+  });
+}
+
+if (adminReviewList) {
+  adminReviewList.addEventListener("click", event => {
+    const button = event.target.closest("[data-review-action]");
+    if (!button) return;
+    let reviews = getAllReviews();
+    if (button.dataset.reviewAction === "delete") reviews = reviews.filter(review => review.id !== button.dataset.reviewId);
+    else reviews = reviews.map(review => review.id === button.dataset.reviewId ? { ...review, status: review.status === "hidden" ? "published" : "hidden" } : review);
+    localStorage.setItem("randomFitsReviews", JSON.stringify(reviews));
+    renderAdminReviews();
+    notify("Review moderation was updated.", "success", "Reviews updated");
+  });
+}
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -229,6 +374,12 @@ function createProductDraft() {
     price: 29.99,
     type: "shirt",
     imageUrl: "",
+    imageUrls: [],
+    description: "",
+    colors: ["Black"],
+    sizes: ["S", "M", "L", "XL", "2XL"],
+    stock: 25,
+    stockStatus: "in-stock",
     garmentLight: "#4f4f4f",
     garmentDark: "#090909"
   };
@@ -293,13 +444,34 @@ function renderCatalogEditor() {
           <input type="url" maxlength="2000" data-product-field="imageUrl" value="${escapeHtml(product.imageUrl)}" placeholder="https://example.com/product.jpg">
         </label>
 
-        <div class="editor-color-row">
-          <label>Fallback Light Color
-            <input type="color" data-product-field="garmentLight" value="${escapeHtml(product.garmentLight)}">
+        <label class="editor-full">Product Description
+          <textarea rows="4" maxlength="3000" data-product-field="description" placeholder="Describe the fit, material, and details.">${escapeHtml(product.description || "")}</textarea>
+        </label>
+
+        <label class="editor-full">Extra Gallery Image URLs
+          <textarea rows="3" data-product-list="imageUrls" placeholder="One image URL per line">${escapeHtml((product.imageUrls || []).join("\n"))}</textarea>
+        </label>
+
+        <div class="editor-field-grid">
+          <label>Available Colors
+            <input type="text" data-product-list="colors" value="${escapeHtml((product.colors || [product.color]).join(", "))}" placeholder="Black, Gray, White">
           </label>
-          <label>Fallback Dark Color
-            <input type="color" data-product-field="garmentDark" value="${escapeHtml(product.garmentDark)}">
+          <label>Available Sizes
+            <input type="text" data-product-list="sizes" value="${escapeHtml((product.sizes || ["S", "M", "L", "XL", "2XL"]).join(", "))}" placeholder="S, M, L, XL, 2XL">
           </label>
+          <label>Inventory Quantity
+            <input type="number" min="0" step="1" data-product-field="stock" value="${Number(product.stock ?? 25)}">
+          </label>
+          <label>Product Status
+            <select data-product-field="stockStatus">
+              <option value="in-stock" ${product.stockStatus !== "out-of-stock" && product.stockStatus !== "draft" ? "selected" : ""}>Active / In Stock</option>
+              <option value="out-of-stock" ${product.stockStatus === "out-of-stock" ? "selected" : ""}>Out of Stock</option>
+              <option value="draft" ${product.stockStatus === "draft" ? "selected" : ""}>Draft / Hidden</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="editor-delete-row">
           <button class="remove-summary-item editor-delete" type="button" data-editor-action="delete">Delete Product</button>
         </div>
       </div>
@@ -360,13 +532,21 @@ async function publishCatalog() {
 if (productEditorList) {
   productEditorList.addEventListener("input", event => {
     const field = event.target.dataset.productField;
+    const listField = event.target.dataset.productList;
     const card = event.target.closest("[data-product-index]");
-    if (!field || !card) return;
+    if ((!field && !listField) || !card) return;
 
     const index = Number(card.dataset.productIndex);
     if (!catalogProducts[index]) return;
 
-    catalogProducts[index][field] = field === "price" ? Number(event.target.value) : event.target.value;
+    if (listField) {
+      catalogProducts[index][listField] = event.target.value
+        .split(/[\n,]+/)
+        .map(value => value.trim())
+        .filter(Boolean);
+    } else {
+      catalogProducts[index][field] = ["price", "stock"].includes(field) ? Number(event.target.value) : event.target.value;
+    }
     catalogDirty = true;
     setCatalogStatus("Unpublished changes.");
   });

@@ -2,6 +2,11 @@
 const summaryTotal = document.getElementById("summaryTotal");
 const checkoutForm = document.getElementById("checkoutForm");
 const orderMessage = document.getElementById("orderMessage");
+const discountForm = document.getElementById("discountForm");
+const discountInput = document.getElementById("discountInput");
+const discountMessage = document.getElementById("discountMessage");
+const discountLine = document.getElementById("discountLine");
+const discountAmount = document.getElementById("discountAmount");
 
 const addressInput = document.getElementById("address");
 const addressSuggestions = document.getElementById("addressSuggestions");
@@ -13,6 +18,19 @@ const zipStatus = document.getElementById("zipStatus");
 let cart = JSON.parse(localStorage.getItem("randomFitsCart")) || [];
 let addressTimer = null;
 let addressAbortController = null;
+let appliedDiscount = null;
+
+function notify(message, type = "info", title = "") {
+  globalThis.RandomFitsUI?.notify(message, { type, title });
+}
+
+function getStoreSettings() {
+  try {
+    return JSON.parse(localStorage.getItem("randomFitsStoreSettings")) || {};
+  } catch {
+    return {};
+  }
+}
 
 const stateAbbreviations = {
   "Alabama": "AL",
@@ -100,6 +118,7 @@ function removeCheckoutItem(productId, size, color) {
   cart = cart.filter(product => !(String(product.id) === String(productId) && product.size === size && product.color === color));
   saveCart();
   renderSummary();
+  notify("The product was removed from your cart.", "info", "Cart updated");
 }
 
 /* ----------------------------------------------------------
@@ -525,6 +544,7 @@ function renderSummary() {
   if (cart.length === 0) {
     summaryItems.innerHTML = `<p class="note">Your bag is empty. Go back and add something first.</p>`;
     summaryTotal.textContent = "$0.00";
+    discountLine.classList.add("hidden");
     return;
   }
 
@@ -549,8 +569,34 @@ function renderSummary() {
     `;
   }).join("");
 
-  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const savings = appliedDiscount ? subtotal * (appliedDiscount.percent / 100) : 0;
+  const total = Math.max(0, subtotal - savings);
+  if (appliedDiscount) discountLine.classList.remove("hidden");
+  else discountLine.classList.add("hidden");
+  discountAmount.textContent = `−${money(savings)}`;
   summaryTotal.textContent = money(total);
+}
+
+if (discountForm) {
+  discountForm.addEventListener("submit", event => {
+    event.preventDefault();
+    const settings = getStoreSettings();
+    const code = discountInput.value.trim().toUpperCase();
+    if (settings.discountEnabled && code && code === String(settings.discountCode || "").toUpperCase()) {
+      appliedDiscount = { code, percent: Number(settings.discountPercent || 0) };
+      discountMessage.textContent = `${appliedDiscount.percent}% discount applied.`;
+      discountMessage.classList.add("success");
+      renderSummary();
+      notify(`${appliedDiscount.percent}% was taken off your order.`, "success", "Discount applied");
+    } else {
+      appliedDiscount = null;
+      discountMessage.textContent = "That discount code is not valid.";
+      discountMessage.classList.remove("success");
+      renderSummary();
+      notify("Check the code and try again.", "error", "Invalid discount");
+    }
+  });
 }
 
 summaryItems.addEventListener("click", event => {
@@ -564,13 +610,16 @@ checkoutForm.addEventListener("submit", event => {
   if (cart.length === 0) {
     orderMessage.innerHTML = "Your bag is empty.";
     orderMessage.classList.add("show");
+    notify("Add at least one product before placing an order.", "error", "Cart is empty");
     return;
   }
 
   const form = new FormData(checkoutForm);
   const name = form.get("firstName");
   const orderNumber = "RF-" + Math.floor(100000 + Math.random() * 900000);
-  const orderTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const discountSavings = appliedDiscount ? subtotal * (appliedDiscount.percent / 100) : 0;
+  const orderTotal = Math.max(0, subtotal - discountSavings);
 
   const order = {
     orderNumber,
@@ -590,6 +639,7 @@ checkoutForm.addEventListener("submit", event => {
       notes: form.get("notes")
     },
     items: cart,
+    discount: appliedDiscount ? { ...appliedDiscount, amount: discountSavings } : null,
     total: orderTotal
   };
 
@@ -597,9 +647,11 @@ checkoutForm.addEventListener("submit", event => {
 
   orderMessage.innerHTML = `<strong>Test order placed.</strong><br>Thanks ${name}. Your order number is <strong>${orderNumber}</strong>.`;
   orderMessage.classList.add("show");
+  notify(`Order ${orderNumber} was placed successfully.`, "success", "Order confirmed");
 
   localStorage.removeItem("randomFitsCart");
   cart = [];
+  appliedDiscount = null;
   checkoutForm.reset();
   hideAddressSuggestions();
   setAddressStatus("Type an address for free suggestions, or enter ZIP to auto-fill city/state.");

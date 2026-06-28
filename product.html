@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Product | Random Fits</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="header">
+    <a class="logo" href="index.html">Random Fits</a>
+
+    <nav class="nav">
+      <a href="index.html#shop">Shop</a>
+      <a href="index.html#about">About</a>
+      <a href="account.html">Account</a>
+    </nav>
+
+    <div class="header-actions">
+      <button class="login-button" id="customerAuthButton">Sign in</button>
+      <button class="bag-button" id="openCart">Bag <span id="cartCount">0</span></button>
+    </div>
+  </header>
+
+  <main class="product-page" id="productPage">
+    <nav class="product-breadcrumb" aria-label="Breadcrumb">
+      <a href="index.html">Home</a><span>/</span><a href="index.html#shop">Shop</a><span>/</span><span id="breadcrumbName">Product</span>
+    </nav>
+
+    <div class="product-page-loading" id="productLoading">Loading product...</div>
+
+    <section class="product-detail hidden" id="productDetail">
+      <div class="product-gallery" id="productGallery">
+        <div class="product-thumbnails" id="productThumbnails" aria-label="Product images"></div>
+        <div class="product-main-image" id="productMainImage"></div>
+      </div>
+
+      <div class="product-purchase-panel">
+        <p class="tag" id="productCategory">New Arrival</p>
+        <h1 id="productName">Product</h1>
+        <div class="product-rating-line">
+          <div class="stars" id="productStars" aria-label="No ratings yet">☆☆☆☆☆</div>
+          <button type="button" class="review-link" id="jumpToReviews">No reviews yet</button>
+        </div>
+        <strong class="product-detail-price" id="productPrice">$0.00</strong>
+        <p class="product-stock-message" id="productStockMessage"></p>
+
+        <p class="product-short-description" id="productShortDescription"></p>
+
+        <fieldset class="product-option-group">
+          <legend>Color: <strong id="selectedColorName"></strong></legend>
+          <div class="color-options" id="colorOptions"></div>
+        </fieldset>
+
+        <fieldset class="product-option-group">
+          <legend>Size</legend>
+          <div class="size-options" id="sizeOptions"></div>
+        </fieldset>
+
+        <div class="product-quantity-row">
+          <span>Quantity</span>
+          <div class="product-quantity-control">
+            <button type="button" id="decreaseQuantity" aria-label="Decrease quantity">−</button>
+            <input id="productQuantity" type="number" min="1" max="10" value="1" aria-label="Quantity">
+            <button type="button" id="increaseQuantity" aria-label="Increase quantity">+</button>
+          </div>
+        </div>
+
+        <div class="product-buy-actions">
+          <button class="primary-btn full" type="button" id="productAddToCart">Add to Cart</button>
+          <button class="secondary-btn full product-buy-now" type="button" id="productBuyNow">Buy Now</button>
+          <button class="secondary-btn full product-wishlist-action" type="button" id="productWishlist">♡ Add to Wishlist</button>
+        </div>
+        <p class="product-action-message" id="productActionMessage" role="status"></p>
+
+        <div class="product-service-list">
+          <div><strong>Shipping</strong><span id="productShippingMessage">Orders ship within 1–3 business days</span></div>
+          <div><strong>Easy returns</strong><span id="productReturnsMessage">Return unworn items within 30 days</span></div>
+          <div><strong>Secure checkout</strong><span>Your order details stay protected</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="product-information hidden" id="productInformation">
+      <article>
+        <p class="tag">Details</p>
+        <h2>Product description</h2>
+        <p id="productDescription"></p>
+      </article>
+      <article>
+        <p class="tag">Delivery</p>
+        <h2>Shipping &amp; returns</h2>
+        <p id="shippingReturnsDescription">Orders are prepared within 1–3 business days. Standard delivery typically arrives in 3–7 business days after shipment. Unworn items with their original tags may be returned within 30 days.</p>
+      </article>
+    </section>
+
+    <section class="product-reviews hidden" id="reviewsSection">
+      <div class="reviews-heading">
+        <div>
+          <p class="tag">Customer Feedback</p>
+          <h2>Ratings &amp; Reviews</h2>
+        </div>
+        <div class="review-summary">
+          <strong id="reviewAverage">—</strong>
+          <div><span class="stars" id="reviewSummaryStars">☆☆☆☆☆</span><small id="reviewCount">No reviews yet</small></div>
+        </div>
+      </div>
+
+      <div class="reviews-layout">
+        <div class="reviews-list" id="reviewsList"></div>
+
+        <form class="review-form" id="reviewForm">
+          <h3>Leave a review</h3>
+          <p>Tell other customers what you think about this product.</p>
+
+          <fieldset>
+            <legend>Your rating</legend>
+            <div class="review-star-input" id="reviewStarInput">
+              <input type="radio" name="rating" id="rating5" value="5" required><label for="rating5" title="5 stars">★</label>
+              <input type="radio" name="rating" id="rating4" value="4"><label for="rating4" title="4 stars">★</label>
+              <input type="radio" name="rating" id="rating3" value="3"><label for="rating3" title="3 stars">★</label>
+              <input type="radio" name="rating" id="rating2" value="2"><label for="rating2" title="2 stars">★</label>
+              <input type="radio" name="rating" id="rating1" value="1"><label for="rating1" title="1 star">★</label>
+            </div>
+          </fieldset>
+
+          <label>Your name
+            <input type="text" id="reviewerName" maxlength="50" placeholder="Customer name" required>
+          </label>
+          <label>Your review
+            <textarea id="reviewText" rows="5" maxlength="1000" placeholder="How was the fit, quality, and feel?" required></textarea>
+          </label>
+          <button class="primary-btn" type="submit">Submit Review</button>
+          <p class="review-form-message" id="reviewFormMessage" role="status"></p>
+        </form>
+      </div>
+    </section>
+
+    <section class="related-products-section hidden" id="relatedSection">
+      <div class="section-header">
+        <div><p class="tag">Keep Shopping</p><h2>You may also like</h2></div>
+      </div>
+      <div class="product-grid" id="relatedProducts"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <h2>Random Fits</h2>
+    <p>Dark modern streetwear essentials.</p>
+    <div><a href="index.html#shop">Shop</a><a href="account.html">Account</a><a href="admin.html">Admin</a></div>
+  </footer>
+
+  <aside class="cart" id="cartDrawer">
+    <div class="cart-header"><h2>Your Bag</h2><button id="closeCart" aria-label="Close bag">×</button></div>
+    <div id="cartItems" class="cart-items"></div>
+    <div class="cart-footer">
+      <div class="cart-total"><span>Total</span><strong id="cartTotal">$0.00</strong></div>
+      <a href="checkout.html" class="primary-btn full">Checkout</a>
+      <button class="secondary-btn full" id="clearCart">Clear Bag</button>
+    </div>
+  </aside>
+  <div class="overlay" id="overlay"></div>
+
+  <script src="ui.js"></script>
+  <script type="module" src="product.js"></script>
+  <script type="module" src="auth.js"></script>
+</body>
+</html>

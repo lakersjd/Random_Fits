@@ -1,6 +1,7 @@
 let products = (globalThis.RANDOM_FITS_DEFAULT_PRODUCTS || []).map(product => ({ ...product }));
 
 let cart = JSON.parse(localStorage.getItem("randomFitsCart")) || [];
+let wishlist = JSON.parse(localStorage.getItem("randomFitsWishlist")) || [];
 let activeFilter = "all";
 
 const productGrid = document.getElementById("productGrid");
@@ -31,10 +32,28 @@ function saveCart() {
   localStorage.setItem("randomFitsCart", JSON.stringify(cart));
 }
 
+function notify(message, type = "info", title = "") {
+  globalThis.RandomFitsUI?.notify(message, { type, title });
+}
+
+function saveWishlist() {
+  localStorage.setItem("randomFitsWishlist", JSON.stringify(wishlist));
+}
+
+function toggleWishlist(productId) {
+  const id = String(productId);
+  const existing = wishlist.map(String).includes(id);
+  wishlist = existing ? wishlist.filter(item => String(item) !== id) : [...wishlist, id];
+  saveWishlist();
+  renderProducts();
+  notify(existing ? "Removed from your wishlist." : "Saved to your wishlist.", "success", "Wishlist updated");
+}
+
 function renderProducts() {
+  const activeProducts = products.filter(product => product.stockStatus !== "draft");
   const filtered = activeFilter === "all"
-    ? products
-    : products.filter(product => product.category === activeFilter);
+    ? activeProducts
+    : activeProducts.filter(product => product.category === activeFilter);
 
   if (filtered.length === 0) {
     productGrid.innerHTML = `<div class="empty-store"><h3>No products yet</h3><p>New products will appear here after they are published from the admin page.</p></div>`;
@@ -42,17 +61,24 @@ function renderProducts() {
   }
 
   productGrid.innerHTML = filtered.map(product => {
+    const productUrl = `product.html?id=${encodeURIComponent(product.id)}`;
     const image = product.imageUrl
       ? `<div class="product-visual product-photo"><img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name)}" loading="lazy"></div>`
       : `<div class="product-visual product-image-empty"><span>No image</span></div>`;
 
+    const soldOut = product.stockStatus === "out-of-stock" || Number(product.stock) === 0;
+    const wished = wishlist.map(String).includes(String(product.id));
     return `
-    <article class="product-card" data-category="${escapeHtml(product.category)}">
-      ${image}
+    <article class="product-card" data-category="${escapeHtml(product.category)}" data-product-url="${escapeHtml(productUrl)}">
+      <button class="wishlist-button ${wished ? "active" : ""}" type="button" data-wishlist-product="${escapeHtml(product.id)}" aria-label="${wished ? "Remove from" : "Add to"} wishlist">${wished ? "♥" : "♡"}</button>
+      ${soldOut ? `<span class="product-stock-badge">Sold out</span>` : ""}
+      <a class="product-card-image-link" href="${escapeHtml(productUrl)}" aria-label="View ${escapeHtml(product.name)}">
+        ${image}
+      </a>
 
       <div class="product-info">
         <div class="product-row">
-          <h3>${escapeHtml(product.name)}</h3>
+          <h3><a href="${escapeHtml(productUrl)}">${escapeHtml(product.name)}</a></h3>
           <strong>${money(product.price)}</strong>
         </div>
 
@@ -70,7 +96,7 @@ function renderProducts() {
             </select>
           </label>
 
-          <button class="add-btn" data-add-product="${escapeHtml(product.id)}">Add to Bag</button>
+          <button class="add-btn" data-add-product="${escapeHtml(product.id)}" ${soldOut ? "disabled" : ""}>${soldOut ? "Sold Out" : "Add to Bag"}</button>
         </div>
       </div>
     </article>
@@ -81,6 +107,10 @@ function renderProducts() {
 function addToCart(productId) {
   const product = products.find(item => String(item.id) === String(productId));
   if (!product) return;
+  if (product.stockStatus === "out-of-stock" || Number(product.stock) === 0) {
+    notify("This product is currently out of stock.", "warning", "Unavailable");
+    return;
+  }
   const size = document.getElementById(`size-${productId}`).value;
   addItemToCart(product, size);
 }
@@ -97,6 +127,7 @@ function addItemToCart(product, size) {
   saveCart();
   renderCart();
   openCart();
+  notify(`${product.name} was added to your bag.`, "success", "Added to cart");
 }
 
 function updateQuantity(productId, size, color, change) {
@@ -118,6 +149,7 @@ function removeItem(productId, size, color) {
   cart = cart.filter(product => !(String(product.id) === String(productId) && product.size === size && product.color === color));
   saveCart();
   renderCart();
+  notify("The product was removed from your bag.", "info", "Cart updated");
 }
 
 function renderCart() {
@@ -126,7 +158,8 @@ function renderCart() {
   } else {
     cartItems.innerHTML = cart.map(item => `
       <div class="cart-item">
-        <div>
+        ${item.imageUrl ? `<img class="cart-item-thumb" src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.name)}">` : `<div class="cart-item-thumb product-image-empty"><span>No image</span></div>`}
+        <div class="cart-item-copy">
           <h4>${escapeHtml(item.name)}</h4>
           <p>${escapeHtml(item.color)} / Size ${escapeHtml(item.size)} / ${money(item.price)}</p>
           <button class="remove-item" data-cart-action="remove" data-id="${escapeHtml(item.id)}" data-size="${escapeHtml(item.size)}" data-color="${escapeHtml(item.color)}">Remove</button>
@@ -168,8 +201,20 @@ filterButtons.forEach(button => {
 });
 
 productGrid.addEventListener("click", event => {
+  const wishlistButton = event.target.closest("[data-wishlist-product]");
+  if (wishlistButton) {
+    toggleWishlist(wishlistButton.dataset.wishlistProduct);
+    return;
+  }
   const button = event.target.closest("[data-add-product]");
-  if (button) addToCart(button.dataset.addProduct);
+  if (button) {
+    addToCart(button.dataset.addProduct);
+    return;
+  }
+
+  if (event.target.closest("a, button, select, label")) return;
+  const card = event.target.closest("[data-product-url]");
+  if (card) window.location.href = card.dataset.productUrl;
 });
 
 cartItems.addEventListener("click", event => {
@@ -193,6 +238,7 @@ clearCart.addEventListener("click", () => {
   cart = [];
   saveCart();
   renderCart();
+  notify("Your bag is now empty.", "info", "Cart cleared");
 });
 
 renderProducts();

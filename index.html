@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
+  <div class="announcement-bar hidden" id="siteAnnouncement"></div>
   <header class="header">
     <a class="logo" href="#home">Random Fits</a>
 
@@ -28,9 +29,9 @@
   <main>
     <section class="hero hero-simple" id="home">
       <div class="hero-copy">
-        <p class="tag">Drop 01 / Modern Streetwear</p>
-        <h1>Clean fits for every day.</h1>
-        <p class="hero-text">
+        <p class="tag" id="homeTag">Drop 01 / Modern Streetwear</p>
+        <h1 id="homeTitle">Clean fits for every day.</h1>
+        <p class="hero-text" id="homeText">
           Premium black, gray, and dark-gray essentials built around shirts, hoodies, and pants.
         </p>
 
@@ -101,6 +102,7 @@
 
   <div class="overlay" id="overlay"></div>
 
+  <script src="ui.js"></script>
   <script src="catalog-defaults.js"></script>
   <script src="script.js"></script>
   <script type="module" src="catalog-client.js"></script>

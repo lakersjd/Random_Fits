@@ -28,7 +28,7 @@
     <section class="account-hero">
       <p class="tag">Customer Account</p>
       <h1>Your Random Fits account</h1>
-      <p>Sign in with Google to manage your preferences, review order details, and cancel eligible test orders.</p>
+      <p>Manage your profile, saved addresses, wishlist, notifications, and every Random Fits order in one place.</p>
     </section>
 
     <section class="account-grid">
@@ -59,10 +59,14 @@
       </div>
 
       <div class="account-card hidden" id="accountSettingsCard">
-        <p class="tag">Account Settings</p>
-        <h2>Your preferences</h2>
+        <p class="tag">Profile</p>
+        <h2>Personal information</h2>
 
         <form id="accountSettingsForm" class="account-settings-form">
+          <label>Display Name
+            <input id="savedDisplayName" name="displayName" type="text" maxlength="60" autocomplete="name" placeholder="Your name">
+          </label>
+
           <label>Preferred Size
             <select id="preferredSize" name="preferredSize">
               <option value="S">S</option>
@@ -77,25 +81,68 @@
             <input id="savedPhone" name="phone" type="tel" autocomplete="tel" placeholder="Optional">
           </label>
 
-          <label class="account-check-row">
-            <input id="orderUpdates" name="orderUpdates" type="checkbox" checked>
-            <span>Send me order updates</span>
-          </label>
-
-          <button class="primary-btn full" type="submit">Save Settings</button>
+          <button class="primary-btn full" type="submit">Save Profile</button>
           <p id="accountSettingsMessage" class="note"></p>
         </form>
+      </div>
+
+      <div class="account-card account-addresses-card hidden" id="accountAddressesCard">
+        <p class="tag">Saved Addresses</p>
+        <h2>Delivery addresses</h2>
+        <div id="savedAddresses" class="saved-addresses"></div>
+        <form id="addressBookForm" class="account-settings-form compact-form">
+          <div class="account-form-grid">
+            <label>Label<input id="addressLabel" type="text" maxlength="30" placeholder="Home" required></label>
+            <label>Street Address<input id="accountAddress" type="text" maxlength="120" autocomplete="street-address" required></label>
+            <label>City<input id="accountCity" type="text" maxlength="60" autocomplete="address-level2" required></label>
+            <label>State<input id="accountState" type="text" maxlength="30" autocomplete="address-level1" required></label>
+            <label>ZIP Code<input id="accountZip" type="text" maxlength="10" autocomplete="postal-code" required></label>
+          </div>
+          <button class="secondary-btn full" type="submit">Add Address</button>
+          <p id="addressBookMessage" class="note"></p>
+        </form>
+      </div>
+
+      <div class="account-card account-wishlist-card hidden" id="accountWishlistCard">
+        <p class="tag">Wishlist</p>
+        <h2>Saved products</h2>
+        <div id="accountWishlist" class="account-wishlist"></div>
+      </div>
+
+      <div class="account-card hidden" id="notificationSettingsCard">
+        <p class="tag">Notifications</p>
+        <h2>Communication preferences</h2>
+        <form id="notificationSettingsForm" class="account-settings-form">
+          <label class="account-check-row"><input id="orderUpdates" type="checkbox" checked><span>Order and shipping updates</span></label>
+          <label class="account-check-row"><input id="promotionUpdates" type="checkbox"><span>New drops and promotions</span></label>
+          <label class="account-check-row"><input id="stockUpdates" type="checkbox" checked><span>Wishlist restock alerts</span></label>
+          <button class="primary-btn full" type="submit">Save Notifications</button>
+          <p id="notificationSettingsMessage" class="note"></p>
+        </form>
+      </div>
+
+      <div class="account-card account-security-card hidden" id="accountSecurityCard">
+        <p class="tag">Login &amp; Security</p>
+        <h2>Account access</h2>
+        <p class="note">Random Fits uses your Google account, so email and password changes are securely managed by Google.</p>
+        <div class="account-security-actions">
+          <a class="secondary-btn" href="https://myaccount.google.com/personal-info" target="_blank" rel="noopener">Change Email</a>
+          <a class="secondary-btn" href="https://myaccount.google.com/security" target="_blank" rel="noopener">Change Password</a>
+          <button class="danger-btn" id="deleteCustomerAccount" type="button">Delete Random Fits Account</button>
+        </div>
+        <p id="accountSecurityMessage" class="note"></p>
       </div>
 
       <div class="account-card account-orders-card" id="accountOrdersCard">
         <p class="tag">Order History</p>
         <h2>My orders</h2>
-        <p class="note">View order details and cancel eligible test orders before they ship.</p>
+        <p class="note">View tracking progress, order details, and cancel eligible orders before they ship.</p>
         <div id="accountOrders" class="account-orders"></div>
       </div>
     </section>
   </main>
 
+  <script src="ui.js"></script>
   <script type="module" src="auth.js"></script>
 </body>
 </html>
