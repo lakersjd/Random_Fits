@@ -1,4 +1,8 @@
-﻿import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+  initializeApp,
+  getApp,
+  getApps
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import {
   getAuth,
   GoogleAuthProvider,
@@ -13,6 +17,14 @@ import {
   firebaseIsConfigured,
   adminEmailsAreConfigured
 } from "./firebase-config.js";
+import {
+  DEFAULT_PRODUCTS,
+  cacheCatalog,
+  loadCatalog,
+  normalizeCatalog,
+  saveCatalog,
+  uploadCatalogImage
+} from "./catalog.js";
 
 const adminLock = document.getElementById("adminLock");
 const adminDashboard = document.getElementById("adminDashboard");
@@ -27,6 +39,12 @@ const exportOrders = document.getElementById("exportOrders");
 const printAllLabels = document.getElementById("printAllLabels");
 const clearAllOrders = document.getElementById("clearAllOrders");
 
+const productEditorList = document.getElementById("productEditorList");
+const catalogStatus = document.getElementById("catalogStatus");
+const addProductButton = document.getElementById("addProduct");
+const saveCatalogButton = document.getElementById("saveCatalog");
+const resetCatalogButton = document.getElementById("resetCatalog");
+
 const statTotalOrders = document.getElementById("statTotalOrders");
 const statNewOrders = document.getElementById("statNewOrders");
 const statSales = document.getElementById("statSales");
@@ -36,6 +54,9 @@ let firebaseReady = false;
 let app = null;
 let auth = null;
 let provider = null;
+let catalogProducts = [];
+let catalogDirty = false;
+let catalogRemoteReady = false;
 
 function setLoginMessage(message, type = "") {
   if (!adminLoginMessage) return;
@@ -75,7 +96,7 @@ function initFirebaseLogin() {
     return;
   }
 
-  app = initializeApp(firebaseConfig);
+  app = getApps().length ? getApp() : initializeApp(firebaseConfig);
   auth = getAuth(app);
   provider = new GoogleAuthProvider();
   provider.setCustomParameters({
@@ -144,6 +165,236 @@ function unlockAdmin(user) {
   }
 
   renderOrders();
+  loadCatalogEditor();
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function setCatalogStatus(message, type = "") {
+  if (!catalogStatus) return;
+  catalogStatus.textContent = message;
+  catalogStatus.classList.remove("success", "error");
+  if (type) catalogStatus.classList.add(type);
+}
+
+function createProductDraft() {
+  const id = globalThis.crypto?.randomUUID?.() || `product-${Date.now()}`;
+
+  return {
+    id,
+    name: "New Product",
+    category: "shirts",
+    color: "Black",
+    price: 29.99,
+    type: "shirt",
+    imageUrl: "",
+    garmentLight: "#4f4f4f",
+    garmentDark: "#090909"
+  };
+}
+
+function renderProductPreview(product) {
+  if (product.imageUrl) {
+    return `<div class="editor-product-preview product-photo"><img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name)}"></div>`;
+  }
+
+  return `<div class="editor-product-preview product-visual ${escapeHtml(product.type)}" style="--garment-light:${escapeHtml(product.garmentLight)}; --garment-dark:${escapeHtml(product.garmentDark)};"></div>`;
+}
+
+function renderCatalogEditor() {
+  if (!productEditorList) return;
+
+  if (catalogProducts.length === 0) {
+    productEditorList.innerHTML = `<div class="empty-orders"><h3>No products</h3><p>Add a product to begin building the catalog.</p></div>`;
+    return;
+  }
+
+  productEditorList.innerHTML = catalogProducts.map((product, index) => `
+    <article class="product-editor-card" data-product-index="${index}">
+      <div class="editor-preview-column">
+        ${renderProductPreview(product)}
+        <label class="image-upload-button">
+          Upload Picture
+          <input type="file" accept="image/*" data-image-upload hidden>
+        </label>
+        <small>Uploads require Firebase Storage. You can always paste an image URL.</small>
+      </div>
+
+      <div class="product-editor-fields">
+        <label class="editor-full">Product Name
+          <input type="text" maxlength="100" data-product-field="name" value="${escapeHtml(product.name)}" required>
+        </label>
+
+        <div class="editor-field-grid">
+          <label>Price
+            <input type="number" min="0" step="0.01" data-product-field="price" value="${escapeHtml(product.price)}" required>
+          </label>
+          <label>Color Name
+            <input type="text" maxlength="50" data-product-field="color" value="${escapeHtml(product.color)}">
+          </label>
+          <label>Category
+            <select data-product-field="category">
+              <option value="shirts" ${product.category === "shirts" ? "selected" : ""}>Shirts</option>
+              <option value="hoodies" ${product.category === "hoodies" ? "selected" : ""}>Hoodies</option>
+              <option value="pants" ${product.category === "pants" ? "selected" : ""}>Pants</option>
+            </select>
+          </label>
+          <label>Product Shape
+            <select data-product-field="type">
+              <option value="shirt" ${product.type === "shirt" ? "selected" : ""}>Shirt</option>
+              <option value="hoodie" ${product.type === "hoodie" ? "selected" : ""}>Hoodie</option>
+              <option value="pants" ${product.type === "pants" ? "selected" : ""}>Pants</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="editor-full">Image URL
+          <input type="url" maxlength="2000" data-product-field="imageUrl" value="${escapeHtml(product.imageUrl)}" placeholder="https://example.com/product.jpg">
+        </label>
+
+        <div class="editor-color-row">
+          <label>Fallback Light Color
+            <input type="color" data-product-field="garmentLight" value="${escapeHtml(product.garmentLight)}">
+          </label>
+          <label>Fallback Dark Color
+            <input type="color" data-product-field="garmentDark" value="${escapeHtml(product.garmentDark)}">
+          </label>
+          <button class="remove-summary-item editor-delete" type="button" data-editor-action="delete">Delete Product</button>
+        </div>
+      </div>
+    </article>
+  `).join("");
+}
+
+async function loadCatalogEditor() {
+  if (!productEditorList || catalogProducts.length) return;
+
+  setCatalogStatus("Loading product catalog...");
+  const result = await loadCatalog();
+  catalogProducts = result.products.map(product => ({ ...product }));
+  catalogRemoteReady = result.remoteReady;
+  catalogDirty = false;
+  renderCatalogEditor();
+
+  if (catalogRemoteReady) {
+    setCatalogStatus(
+      result.source === "firebase"
+        ? "Live Firebase catalog loaded."
+        : "Default products loaded. Publish once to create the live catalog.",
+      "success"
+    );
+  } else {
+    setCatalogStatus("Local draft mode: enable Cloud Firestore before products can publish to every visitor.", "error");
+  }
+}
+
+async function publishCatalog() {
+  const invalid = catalogProducts.find(product => !String(product.name || "").trim() || Number(product.price) < 0);
+  if (invalid) {
+    setCatalogStatus("Every product needs a name and a valid price.", "error");
+    return;
+  }
+
+  saveCatalogButton.disabled = true;
+  setCatalogStatus("Publishing products...");
+  catalogProducts = normalizeCatalog(catalogProducts);
+  cacheCatalog(catalogProducts);
+
+  try {
+    catalogProducts = await saveCatalog(catalogProducts);
+    catalogDirty = false;
+    catalogRemoteReady = true;
+    renderCatalogEditor();
+    setCatalogStatus("Products published. Refresh the storefront to see the changes.", "success");
+  } catch (error) {
+    console.error("Product publishing failed.", error);
+    setCatalogStatus("Saved as a local draft, but Firebase publishing failed. Enable Firestore and its catalog rules, then try again.", "error");
+  } finally {
+    saveCatalogButton.disabled = false;
+  }
+}
+
+if (productEditorList) {
+  productEditorList.addEventListener("input", event => {
+    const field = event.target.dataset.productField;
+    const card = event.target.closest("[data-product-index]");
+    if (!field || !card) return;
+
+    const index = Number(card.dataset.productIndex);
+    if (!catalogProducts[index]) return;
+
+    catalogProducts[index][field] = field === "price" ? Number(event.target.value) : event.target.value;
+    catalogDirty = true;
+    setCatalogStatus("Unpublished changes.");
+  });
+
+  productEditorList.addEventListener("change", async event => {
+    if (event.target.dataset.productField === "imageUrl") {
+      renderCatalogEditor();
+      return;
+    }
+
+    if (!event.target.matches("[data-image-upload]")) return;
+
+    const card = event.target.closest("[data-product-index]");
+    const index = Number(card?.dataset.productIndex);
+    const product = catalogProducts[index];
+    const file = event.target.files?.[0];
+    if (!product || !file) return;
+
+    setCatalogStatus(`Uploading ${file.name}...`);
+
+    try {
+      product.imageUrl = await uploadCatalogImage(product.id, file);
+      catalogDirty = true;
+      renderCatalogEditor();
+      setCatalogStatus("Picture uploaded. Click Publish Products to save the catalog.", "success");
+    } catch (error) {
+      console.error("Image upload failed.", error);
+      setCatalogStatus("Picture upload failed. Enable Firebase Storage or paste a public image URL instead.", "error");
+    }
+  });
+
+  productEditorList.addEventListener("click", event => {
+    const button = event.target.closest("[data-editor-action='delete']");
+    if (!button) return;
+
+    const card = button.closest("[data-product-index]");
+    const index = Number(card?.dataset.productIndex);
+    if (!catalogProducts[index]) return;
+
+    catalogProducts.splice(index, 1);
+    catalogDirty = true;
+    renderCatalogEditor();
+    setCatalogStatus("Product removed from the draft. Publish to make it live.");
+  });
+}
+
+if (addProductButton) {
+  addProductButton.addEventListener("click", () => {
+    catalogProducts.unshift(createProductDraft());
+    catalogDirty = true;
+    renderCatalogEditor();
+    setCatalogStatus("New product added to the draft. Fill it out, then publish.");
+  });
+}
+
+if (saveCatalogButton) saveCatalogButton.addEventListener("click", publishCatalog);
+
+if (resetCatalogButton) {
+  resetCatalogButton.addEventListener("click", () => {
+    catalogProducts = DEFAULT_PRODUCTS.map(product => ({ ...product }));
+    catalogDirty = true;
+    renderCatalogEditor();
+    setCatalogStatus("Defaults restored in the draft. Publish to make them live.");
+  });
 }
 
 function money(value) {

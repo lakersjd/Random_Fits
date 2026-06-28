@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -26,8 +26,8 @@
     <section class="admin-lock" id="adminLock">
       <div class="admin-lock-card">
         <p class="tag">Admin Only</p>
-        <h1>Orders Dashboard</h1>
-        <p>Sign in with an approved Google account to view test orders and print shipping labels.</p>
+        <h1>Store Dashboard</h1>
+        <p>Sign in with an approved Google account to manage products, pictures, prices, and test orders.</p>
 
         <button id="googleLoginButton" class="google-login-btn" type="button">
           <span>G</span>
@@ -35,15 +35,34 @@
         </button>
 
         <p id="adminLoginMessage" class="note">
-          Google login is the only admin login. Add your Firebase config and approved admin email in <strong>admin.js</strong>.
+          Google login is the only admin login. Firebase settings and approved admin emails live in <strong>firebase-config.js</strong>.
         </p>
       </div>
     </section>
 
     <section class="admin-dashboard hidden" id="adminDashboard">
+      <section class="catalog-manager">
+        <div class="admin-title-row catalog-title-row">
+          <div>
+            <p class="tag">Store Editor</p>
+            <h1>Products</h1>
+            <p class="admin-subtitle">Add products, change prices and categories, or replace product pictures.</p>
+          </div>
+
+          <div class="admin-actions">
+            <button class="secondary-btn" id="resetCatalog" type="button">Reset Defaults</button>
+            <button class="secondary-btn" id="addProduct" type="button">Add Product</button>
+            <button class="primary-btn" id="saveCatalog" type="button">Publish Products</button>
+          </div>
+        </div>
+
+        <div id="catalogStatus" class="catalog-status">Loading product catalog...</div>
+        <div id="productEditorList" class="product-editor-list"></div>
+      </section>
+
       <div class="admin-title-row">
         <div>
-          <p class="tag">Admin Panel</p>
+          <p class="tag">Order Manager</p>
           <h1>Orders</h1>
           <p class="admin-subtitle">View order details, update status, and print shipping labels.</p>
         </div>

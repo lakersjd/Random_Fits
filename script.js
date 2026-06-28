@@ -1,4 +1,6 @@
-﻿const products = [
+let products = (globalThis.RANDOM_FITS_DEFAULT_PRODUCTS || []).length
+  ? globalThis.RANDOM_FITS_DEFAULT_PRODUCTS.map(product => ({ ...product }))
+  : [
   {
     id: 1,
     name: "Black Oversized Shirt",
@@ -96,7 +98,16 @@ const clearCart = document.getElementById("clearCart");
 const filterButtons = document.querySelectorAll(".filter");
 
 function money(value) {
-  return `$${value.toFixed(2)}`;
+  return `$${Number(value || 0).toFixed(2)}`;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 function saveCart() {
@@ -108,25 +119,27 @@ function renderProducts() {
     ? products
     : products.filter(product => product.category === activeFilter);
 
-  productGrid.innerHTML = filtered.map(product => `
-    <article class="product-card" id="${product.category}">
-      <div
-        class="product-visual ${product.type}"
-        style="--garment-light:${product.garmentLight}; --garment-dark:${product.garmentDark};"
-      ></div>
+  productGrid.innerHTML = filtered.map(product => {
+    const image = product.imageUrl
+      ? `<div class="product-visual product-photo"><img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name)}" loading="lazy"></div>`
+      : `<div class="product-visual ${escapeHtml(product.type)}" style="--garment-light:${escapeHtml(product.garmentLight)}; --garment-dark:${escapeHtml(product.garmentDark)};"></div>`;
+
+    return `
+    <article class="product-card" data-category="${escapeHtml(product.category)}">
+      ${image}
 
       <div class="product-info">
         <div class="product-row">
-          <h3>${product.name}</h3>
+          <h3>${escapeHtml(product.name)}</h3>
           <strong>${money(product.price)}</strong>
         </div>
 
-        <p>${product.color} / ${product.category}</p>
+        <p>${escapeHtml(product.color)} / ${escapeHtml(product.category)}</p>
 
         <div class="product-controls">
           <label>
             Size
-            <select id="size-${product.id}">
+            <select id="size-${escapeHtml(product.id)}">
               <option>S</option>
               <option selected>M</option>
               <option>L</option>
@@ -135,11 +148,12 @@ function renderProducts() {
             </select>
           </label>
 
-          <button class="add-btn" onclick="addToCart(${product.id})">Add to Bag</button>
+          <button class="add-btn" data-add-product="${escapeHtml(product.id)}">Add to Bag</button>
         </div>
       </div>
     </article>
-  `).join("");
+  `;
+  }).join("");
 }
 
 function addHeroItem() {
@@ -157,7 +171,8 @@ function addHeroItem() {
 }
 
 function addToCart(productId) {
-  const product = products.find(item => item.id === productId);
+  const product = products.find(item => String(item.id) === String(productId));
+  if (!product) return;
   const size = document.getElementById(`size-${productId}`).value;
   addItemToCart(product, size);
 }
@@ -177,13 +192,13 @@ function addItemToCart(product, size) {
 }
 
 function updateQuantity(productId, size, color, change) {
-  const item = cart.find(product => product.id === productId && product.size === size && product.color === color);
+  const item = cart.find(product => String(product.id) === String(productId) && product.size === size && product.color === color);
   if (!item) return;
 
   item.quantity += change;
 
   if (item.quantity <= 0) {
-    cart = cart.filter(product => !(product.id === productId && product.size === size && product.color === color));
+    cart = cart.filter(product => !(String(product.id) === String(productId) && product.size === size && product.color === color));
   }
 
   saveCart();
@@ -192,7 +207,7 @@ function updateQuantity(productId, size, color, change) {
 
 
 function removeItem(productId, size, color) {
-  cart = cart.filter(product => !(product.id === productId && product.size === size && product.color === color));
+  cart = cart.filter(product => !(String(product.id) === String(productId) && product.size === size && product.color === color));
   saveCart();
   renderCart();
 }
@@ -204,15 +219,15 @@ function renderCart() {
     cartItems.innerHTML = cart.map(item => `
       <div class="cart-item">
         <div>
-          <h4>${item.name}</h4>
-          <p>${item.color} / Size ${item.size} / ${money(item.price)}</p>
-          <button class="remove-item" onclick="removeItem(${item.id}, '${item.size}', '${item.color}')">Remove</button>
+          <h4>${escapeHtml(item.name)}</h4>
+          <p>${escapeHtml(item.color)} / Size ${escapeHtml(item.size)} / ${money(item.price)}</p>
+          <button class="remove-item" data-cart-action="remove" data-id="${escapeHtml(item.id)}" data-size="${escapeHtml(item.size)}" data-color="${escapeHtml(item.color)}">Remove</button>
         </div>
 
         <div class="qty">
-          <button onclick="updateQuantity(${item.id}, '${item.size}', '${item.color}', -1)">−</button>
+          <button data-cart-action="quantity" data-change="-1" data-id="${escapeHtml(item.id)}" data-size="${escapeHtml(item.size)}" data-color="${escapeHtml(item.color)}">−</button>
           <strong>${item.quantity}</strong>
-          <button onclick="updateQuantity(${item.id}, '${item.size}', '${item.color}', 1)">+</button>
+          <button data-cart-action="quantity" data-change="1" data-id="${escapeHtml(item.id)}" data-size="${escapeHtml(item.size)}" data-color="${escapeHtml(item.color)}">+</button>
         </div>
       </div>
     `).join("");
@@ -244,6 +259,24 @@ filterButtons.forEach(button => {
   });
 });
 
+productGrid.addEventListener("click", event => {
+  const button = event.target.closest("[data-add-product]");
+  if (button) addToCart(button.dataset.addProduct);
+});
+
+cartItems.addEventListener("click", event => {
+  const button = event.target.closest("[data-cart-action]");
+  if (!button) return;
+
+  const { id, size, color, cartAction } = button.dataset;
+
+  if (cartAction === "remove") {
+    removeItem(id, size, color);
+  } else if (cartAction === "quantity") {
+    updateQuantity(id, size, color, Number(button.dataset.change));
+  }
+});
+
 openCartBtn.addEventListener("click", openCart);
 closeCartBtn.addEventListener("click", closeCart);
 overlay.addEventListener("click", closeCart);
@@ -256,4 +289,10 @@ clearCart.addEventListener("click", () => {
 
 renderProducts();
 renderCart();
+
+globalThis.setCatalogProducts = nextProducts => {
+  if (!Array.isArray(nextProducts) || nextProducts.length === 0) return;
+  products = nextProducts.map(product => ({ ...product }));
+  renderProducts();
+};
 

@@ -31,7 +31,7 @@
     <section class="account-hero">
       <p class="tag">Customer Account</p>
       <h1>Your Random Fits account</h1>
-      <p>Sign in with Google to view your customer profile and saved test orders from this browser.</p>
+      <p>Sign in with Google to manage your preferences, review order details, and cancel eligible test orders.</p>
     </section>
 
     <section class="account-grid">
@@ -61,9 +61,39 @@
         <button class="secondary-btn full" id="accountSignOut">Sign Out</button>
       </div>
 
-      <div class="account-card">
-        <p class="tag">Orders</p>
-        <h2>My test orders</h2>
+      <div class="account-card hidden" id="accountSettingsCard">
+        <p class="tag">Account Settings</p>
+        <h2>Your preferences</h2>
+
+        <form id="accountSettingsForm" class="account-settings-form">
+          <label>Preferred Size
+            <select id="preferredSize" name="preferredSize">
+              <option value="S">S</option>
+              <option value="M" selected>M</option>
+              <option value="L">L</option>
+              <option value="XL">XL</option>
+              <option value="2XL">2XL</option>
+            </select>
+          </label>
+
+          <label>Phone Number
+            <input id="savedPhone" name="phone" type="tel" autocomplete="tel" placeholder="Optional">
+          </label>
+
+          <label class="account-check-row">
+            <input id="orderUpdates" name="orderUpdates" type="checkbox" checked>
+            <span>Send me order updates</span>
+          </label>
+
+          <button class="primary-btn full" type="submit">Save Settings</button>
+          <p id="accountSettingsMessage" class="note"></p>
+        </form>
+      </div>
+
+      <div class="account-card account-orders-card" id="accountOrdersCard">
+        <p class="tag">Order History</p>
+        <h2>My orders</h2>
+        <p class="note">View order details and cancel eligible test orders before they ship.</p>
         <div id="accountOrders" class="account-orders"></div>
       </div>
     </section>
