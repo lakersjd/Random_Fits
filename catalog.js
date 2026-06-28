@@ -11,13 +11,6 @@ import {
   serverTimestamp,
   setDoc
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-import {
-  getDownloadURL,
-  getStorage,
-  ref as storageRef,
-  uploadBytes
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
-
 import { firebaseConfig } from "./firebase-config.js";
 
 const CATALOG_CACHE_KEY = "randomFitsCatalog";
@@ -205,20 +198,8 @@ export async function uploadCatalogImage(productId, file) {
     throw new Error("Images must be smaller than 8 MB.");
   }
 
-  try {
-    const safeName = String(file.name || "product-image")
-      .toLowerCase()
-      .replace(/[^a-z0-9._-]+/g, "-")
-      .slice(-100);
-    const path = `products/${String(productId).replace(/[^a-zA-Z0-9_-]/g, "-")}/${Date.now()}-${safeName}`;
-    const reference = storageRef(getStorage(getFirebaseApp()), path);
-
-    await uploadBytes(reference, file, { contentType: file.type });
-    return getDownloadURL(reference);
-  } catch (error) {
-    console.info("Firebase Storage is unavailable; using compressed Firestore image mode.", error);
-    return compressImageForFreeCatalog(file);
-  }
+  void productId;
+  return compressImageForFreeCatalog(file);
 }
 
 function readImageFile(file) {

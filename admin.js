@@ -571,7 +571,7 @@ if (productEditorList) {
     const file = event.target.files?.[0];
     if (!product || !file) return;
 
-    setCatalogStatus(`Uploading ${file.name}...`);
+    setCatalogStatus(`Compressing ${file.name} for free upload...`);
 
     try {
       product.imageUrl = await uploadCatalogImage(product.id, file);
