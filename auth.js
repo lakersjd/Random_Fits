@@ -51,9 +51,82 @@ const addressBookMessage = document.getElementById("addressBookMessage");
 const accountWishlist = document.getElementById("accountWishlist");
 const deleteCustomerAccount = document.getElementById("deleteCustomerAccount");
 const accountSecurityMessage = document.getElementById("accountSecurityMessage");
+let profileMenu = null;
 
 function notify(message, type = "info", title = "") {
   globalThis.RandomFitsUI?.notify(message, { type, title });
+}
+
+function ensureProfileMenu() {
+  if (!customerAuthButton || profileMenu) return profileMenu;
+  const actions = customerAuthButton.closest?.(".header-actions");
+  if (!actions) return null;
+
+  profileMenu = document.createElement("div");
+  profileMenu.id = "profileDropdown";
+  profileMenu.className = "profile-dropdown hidden";
+  profileMenu.innerHTML = `
+    <div class="profile-dropdown-user">
+      <strong id="profileDropdownName">Customer</strong>
+      <span id="profileDropdownEmail"></span>
+    </div>
+    <nav aria-label="Account menu">
+      <a href="account.html#signedInCard"><span>◯</span>Profile</a>
+      <a href="account.html#accountOrdersCard"><span>▣</span>Orders</a>
+      <a href="account.html#accountWishlistCard"><span>♡</span>Wishlist</a>
+      <a href="account.html#accountAddressesCard"><span>⌂</span>Addresses</a>
+      <a href="account.html#accountSettingsCard"><span>⚙</span>Settings</a>
+    </nav>
+    <button class="profile-dropdown-signout" type="button" id="profileDropdownSignOut">Sign Out</button>
+  `;
+  actions.appendChild(profileMenu);
+  customerAuthButton.setAttribute("aria-haspopup", "menu");
+  customerAuthButton.setAttribute("aria-expanded", "false");
+
+  profileMenu.querySelector("#profileDropdownSignOut").addEventListener("click", signOutCustomer);
+  profileMenu.addEventListener("click", event => {
+    if (event.target.closest("a")) closeProfileMenu();
+  });
+  return profileMenu;
+}
+
+function openProfileMenu() {
+  const menu = ensureProfileMenu();
+  if (!menu) return;
+  menu.classList.remove("hidden");
+  customerAuthButton.classList.add("active");
+  customerAuthButton.setAttribute("aria-expanded", "true");
+}
+
+function closeProfileMenu() {
+  if (!profileMenu || !customerAuthButton) return;
+  profileMenu.classList.add("hidden");
+  customerAuthButton.classList.remove("active");
+  customerAuthButton.setAttribute("aria-expanded", "false");
+}
+
+function toggleProfileMenu() {
+  const menu = ensureProfileMenu();
+  if (!menu) return;
+  if (menu.classList.contains("hidden")) openProfileMenu();
+  else closeProfileMenu();
+}
+
+function updateProfileMenu(customer) {
+  const menu = ensureProfileMenu();
+  if (!menu || !customer) return;
+  const name = menu.querySelector("#profileDropdownName");
+  const email = menu.querySelector("#profileDropdownEmail");
+  if (name) name.textContent = customer.displayName || customer.name || "Customer";
+  if (email) email.textContent = customer.email || "";
+}
+
+function scrollToAccountHash() {
+  if (!window.location.hash) return;
+  const target = document.querySelector(window.location.hash);
+  if (target && !target.classList.contains("hidden")) {
+    setTimeout(() => target.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  }
 }
 
 function setMessage(message, type = "") {
@@ -198,6 +271,7 @@ function renderSavedCustomer() {
 
   if (customer) {
     if (customerAuthButton) customerAuthButton.textContent = customer.name?.split(" ")[0] || "Account";
+    updateProfileMenu(customer);
     if (signedOutCard) signedOutCard.classList.add("hidden");
     if (signedInCard) signedInCard.classList.remove("hidden");
     if (accountSettingsCard) accountSettingsCard.classList.remove("hidden");
@@ -214,10 +288,12 @@ function renderSavedCustomer() {
   renderSavedAddresses();
   renderWishlist();
   renderAccountOrders();
+  scrollToAccountHash();
 }
 
 function renderSignedIn(user) {
   if (customerAuthButton) customerAuthButton.textContent = user.displayName?.split(" ")[0] || "Account";
+  updateProfileMenu(user);
 
   if (signedOutCard) signedOutCard.classList.add("hidden");
   if (signedInCard) signedInCard.classList.remove("hidden");
@@ -237,10 +313,12 @@ function renderSignedIn(user) {
   renderWishlist();
   prefillCheckout(user);
   renderAccountOrders();
+  scrollToAccountHash();
 }
 
 function renderSignedOut() {
   if (customerAuthButton) customerAuthButton.textContent = "Sign in";
+  closeProfileMenu();
 
   if (signedOutCard) signedOutCard.classList.remove("hidden");
   if (signedInCard) signedInCard.classList.add("hidden");
@@ -395,16 +473,25 @@ function cancelCustomerOrder(orderNumber) {
 }
 
 if (customerAuthButton) {
-  customerAuthButton.addEventListener("click", () => {
+  customerAuthButton.addEventListener("click", event => {
+    event.stopPropagation();
     const saved = getSavedCustomer();
 
     if (saved) {
-      window.location.href = "account.html";
+      toggleProfileMenu();
     } else {
       signInWithGoogle();
     }
   });
 }
+
+document.addEventListener?.("click", event => {
+  if (profileMenu && !event.target.closest(".header-actions")) closeProfileMenu();
+});
+
+document.addEventListener?.("keydown", event => {
+  if (event.key === "Escape") closeProfileMenu();
+});
 
 if (accountGoogleLogin) {
   accountGoogleLogin.addEventListener("click", signInWithGoogle);

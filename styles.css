@@ -2070,6 +2070,121 @@ input:-webkit-autofill:focus {
   }
 }
 
+/* Customer profile dropdown */
+.header-actions {
+  position: relative;
+}
+
+.login-button.active {
+  border-color: rgba(255,255,255,.42);
+  background: rgba(255,255,255,.14);
+}
+
+.profile-dropdown {
+  position: absolute;
+  z-index: 120;
+  top: calc(100% + 14px);
+  right: 0;
+  width: min(310px, calc(100vw - 28px));
+  padding: 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 18px;
+  background: rgba(17,17,17,.98);
+  box-shadow: 0 26px 80px rgba(0,0,0,.55);
+  backdrop-filter: blur(20px);
+  animation: profile-menu-in .16s ease;
+}
+
+@keyframes profile-menu-in {
+  from { opacity: 0; transform: translateY(-5px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.profile-dropdown-user {
+  padding: 13px 14px 15px;
+  border-bottom: 1px solid var(--line);
+}
+
+.profile-dropdown-user strong,
+.profile-dropdown-user span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-dropdown-user strong {
+  font-size: 14px;
+}
+
+.profile-dropdown-user span {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.profile-dropdown nav {
+  display: grid;
+  gap: 3px;
+  padding: 8px 0;
+}
+
+.profile-dropdown nav a {
+  min-height: 42px;
+  padding: 0 12px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 750;
+  transition: background .16s ease, color .16s ease;
+}
+
+.profile-dropdown nav a:hover {
+  background: rgba(255,255,255,.075);
+  color: var(--text);
+}
+
+.profile-dropdown nav a span {
+  width: 20px;
+  color: var(--text);
+  text-align: center;
+  font-size: 16px;
+}
+
+.profile-dropdown-signout {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: transparent;
+  color: #ffaaa5;
+  text-align: left;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+#signedInCard,
+#accountOrdersCard,
+#accountWishlistCard,
+#accountAddressesCard,
+#accountSettingsCard {
+  scroll-margin-top: 100px;
+}
+
+@media (max-width: 720px) {
+  .profile-dropdown {
+    position: fixed;
+    top: 68px;
+    right: 14px;
+  }
+}
+
 /* Shopify-inspired luxury polish */
 .announcement-bar {
   min-height: 38px;
