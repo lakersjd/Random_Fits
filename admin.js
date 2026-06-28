@@ -18,7 +18,6 @@ import {
   adminEmailsAreConfigured
 } from "./firebase-config.js";
 import {
-  DEFAULT_PRODUCTS,
   cacheCatalog,
   loadCatalog,
   normalizeCatalog,
@@ -43,7 +42,7 @@ const productEditorList = document.getElementById("productEditorList");
 const catalogStatus = document.getElementById("catalogStatus");
 const addProductButton = document.getElementById("addProduct");
 const saveCatalogButton = document.getElementById("saveCatalog");
-const resetCatalogButton = document.getElementById("resetCatalog");
+const saveCatalogDraftButton = document.getElementById("saveCatalogDraft");
 
 const statTotalOrders = document.getElementById("statTotalOrders");
 const statNewOrders = document.getElementById("statNewOrders");
@@ -205,7 +204,7 @@ function renderProductPreview(product) {
     return `<div class="editor-product-preview product-photo"><img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name)}"></div>`;
   }
 
-  return `<div class="editor-product-preview product-visual ${escapeHtml(product.type)}" style="--garment-light:${escapeHtml(product.garmentLight)}; --garment-dark:${escapeHtml(product.garmentDark)};"></div>`;
+  return `<div class="editor-product-preview product-image-empty"><span>No image</span></div>`;
 }
 
 function renderCatalogEditor() {
@@ -296,11 +295,6 @@ async function loadCatalogEditor() {
 }
 
 async function publishCatalog() {
-  if (catalogProducts.length === 0) {
-    setCatalogStatus("Add at least one product before publishing.", "error");
-    return;
-  }
-
   const invalid = catalogProducts.find(product => !String(product.name || "").trim() || Number(product.price) < 0);
   if (invalid) {
     setCatalogStatus("Every product needs a name and a valid price.", "error");
@@ -393,12 +387,12 @@ if (addProductButton) {
 
 if (saveCatalogButton) saveCatalogButton.addEventListener("click", publishCatalog);
 
-if (resetCatalogButton) {
-  resetCatalogButton.addEventListener("click", () => {
-    catalogProducts = DEFAULT_PRODUCTS.map(product => ({ ...product }));
-    catalogDirty = true;
+if (saveCatalogDraftButton) {
+  saveCatalogDraftButton.addEventListener("click", () => {
+    catalogProducts = cacheCatalog(catalogProducts);
+    catalogDirty = false;
     renderCatalogEditor();
-    setCatalogStatus("Defaults restored in the draft. Publish to make them live.");
+    setCatalogStatus("Draft saved on this device.", "success");
   });
 }
 
@@ -523,11 +517,12 @@ function renderOrderDetails(order) {
       <h3>Items</h3>
       ${items.map(item => `
         <div class="admin-item-row">
-          <div class="summary-thumb product-visual ${item.type || "hoodie"}"
-            style="--garment-light:${item.garmentLight || "#4f4f4f"}; --garment-dark:${item.garmentDark || "#090909"};"></div>
+          ${item.imageUrl
+            ? `<div class="summary-thumb product-photo"><img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.name)}"></div>`
+            : `<div class="summary-thumb product-image-empty"><span>No image</span></div>`}
           <div>
-            <strong>${item.name}</strong>
-            <p>${item.color} / Size ${item.size} / Qty ${item.quantity}</p>
+            <strong>${escapeHtml(item.name)}</strong>
+            <p>${escapeHtml(item.color)} / Size ${escapeHtml(item.size)} / Qty ${Number(item.quantity || 0)}</p>
           </div>
           <b>${money(item.price * item.quantity)}</b>
         </div>

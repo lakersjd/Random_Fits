@@ -69,7 +69,16 @@ const stateAbbreviations = {
 };
 
 function money(value) {
-  return `$${value.toFixed(2)}`;
+  return `$${Number(value || 0).toFixed(2)}`;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 function saveCart() {
@@ -88,7 +97,7 @@ function saveOrder(order) {
 
 
 function removeCheckoutItem(productId, size, color) {
-  cart = cart.filter(product => !(product.id === productId && product.size === size && product.color === color));
+  cart = cart.filter(product => !(String(product.id) === String(productId) && product.size === size && product.color === color));
   saveCart();
   renderSummary();
 }
@@ -520,23 +529,20 @@ function renderSummary() {
   }
 
   summaryItems.innerHTML = cart.map(item => {
-    const garmentLight = item.garmentLight || "#4f4f4f";
-    const garmentDark = item.garmentDark || "#090909";
-    const type = item.type || "hoodie";
+    const image = item.imageUrl
+      ? `<div class="summary-thumb product-photo"><img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.name)}"></div>`
+      : `<div class="summary-thumb product-image-empty"><span>No image</span></div>`;
 
     return `
       <div class="summary-item">
-        <div
-          class="summary-thumb product-visual ${type}"
-          style="--garment-light:${garmentLight}; --garment-dark:${garmentDark};"
-        ></div>
+        ${image}
 
         <div>
-          <strong>${item.name}</strong>
-          <span>${item.color} / Size ${item.size} / Qty ${item.quantity} / ${money(item.price * item.quantity)}</span>
+          <strong>${escapeHtml(item.name)}</strong>
+          <span>${escapeHtml(item.color)} / Size ${escapeHtml(item.size)} / Qty ${Number(item.quantity || 0)} / ${money(item.price * item.quantity)}</span>
 
           <div class="summary-actions">
-            <button class="remove-summary-item" onclick="removeCheckoutItem(${item.id}, '${item.size}', '${item.color}')">Remove</button>
+            <button class="remove-summary-item" data-remove-checkout="${escapeHtml(item.id)}" data-size="${escapeHtml(item.size)}" data-color="${escapeHtml(item.color)}">Remove</button>
           </div>
         </div>
       </div>
@@ -546,6 +552,11 @@ function renderSummary() {
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   summaryTotal.textContent = money(total);
 }
+
+summaryItems.addEventListener("click", event => {
+  const button = event.target.closest("[data-remove-checkout]");
+  if (button) removeCheckoutItem(button.dataset.removeCheckout, button.dataset.size, button.dataset.color);
+});
 
 checkoutForm.addEventListener("submit", event => {
   event.preventDefault();

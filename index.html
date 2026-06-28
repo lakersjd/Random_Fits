@@ -15,9 +15,6 @@
 
     <nav class="nav">
       <a href="#shop">Shop</a>
-      <a href="#hoodies">Hoodies</a>
-      <a href="#shirts">Shirts</a>
-      <a href="#pants">Pants</a>
       <a href="#about">About</a>
       <a href="account.html">Account</a>
     </nav>
@@ -29,7 +26,7 @@
   </header>
 
   <main>
-    <section class="hero" id="home">
+    <section class="hero hero-simple" id="home">
       <div class="hero-copy">
         <p class="tag">Drop 01 / Modern Streetwear</p>
         <h1>Clean fits for every day.</h1>
@@ -43,46 +40,6 @@
         </div>
       </div>
 
-      <div class="hero-card">
-        <div class="product-visual hoodie"></div>
-        <div class="hero-card-info">
-          <span>Featured</span>
-          <h3>Core Black Hoodie</h3>
-
-          <label>
-            Size
-            <select id="heroSize">
-              <option>S</option>
-              <option selected>M</option>
-              <option>L</option>
-              <option>XL</option>
-              <option>2XL</option>
-            </select>
-          </label>
-
-          <button class="primary-btn full" onclick="addHeroItem()">Add to Bag — $49.99</button>
-        </div>
-      </div>
-    </section>
-
-    <section class="category-row">
-      <a href="#shirts" class="category-card">
-        <span>01</span>
-        <h2>Shirts</h2>
-        <p>Clean everyday tees.</p>
-      </a>
-
-      <a href="#hoodies" class="category-card">
-        <span>02</span>
-        <h2>Hoodies</h2>
-        <p>Heavyweight essentials.</p>
-      </a>
-
-      <a href="#pants" class="category-card">
-        <span>03</span>
-        <h2>Pants</h2>
-        <p>Relaxed streetwear bottoms.</p>
-      </a>
     </section>
 
     <section class="shop-section" id="shop">
@@ -92,12 +49,6 @@
           <h2>Shop the drop</h2>
         </div>
 
-        <div class="filters">
-          <button class="filter active" data-filter="all">All</button>
-          <button class="filter" data-filter="shirts">Shirts</button>
-          <button class="filter" data-filter="hoodies">Hoodies</button>
-          <button class="filter" data-filter="pants">Pants</button>
-        </div>
       </div>
 
       <div class="product-grid" id="productGrid"></div>

@@ -123,6 +123,14 @@ main {
   padding: 58px 0;
 }
 
+.hero-simple {
+  grid-template-columns: 1fr;
+}
+
+.hero-simple .hero-copy {
+  max-width: 900px;
+}
+
 .tag {
   margin: 0 0 14px;
   color: var(--muted);
@@ -407,6 +415,47 @@ textarea:focus {
   display: block;
   object-fit: cover;
   object-position: center top;
+}
+
+.product-image-empty {
+  display: grid;
+  place-items: center;
+  background: #121212;
+  border: 1px dashed var(--line-strong);
+  color: var(--muted);
+}
+
+.product-image-empty::before {
+  content: none !important;
+}
+
+.product-image-empty span {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.empty-store {
+  grid-column: 1 / -1;
+  min-height: 260px;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  padding: 30px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 10px;
+  background: rgba(255,255,255,.025);
+}
+
+.empty-store h3 {
+  margin: 0 0 8px;
+  font-size: 28px;
+}
+
+.empty-store p {
+  margin: 0;
+  color: var(--muted);
 }
 
 .product-info {
@@ -1303,6 +1352,10 @@ input:-webkit-autofill:focus {
 
 .empty-orders h3 {
   color: var(--text);
+}
+
+.summary-thumb.product-image-empty {
+  background: #121212;
 }
 
 /* Product catalog editor */
