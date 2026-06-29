@@ -26,118 +26,131 @@
 
   <main class="account-page">
     <section class="account-hero">
-      <p class="tag">Customer Account</p>
-      <h1>Your Random Fits account</h1>
-      <p>Manage your profile, saved addresses, wishlist, notifications, and every Random Fits order in one place.</p>
+      <div>
+        <p class="tag">Customer Portal</p>
+        <h1>Account settings</h1>
+        <p>Manage your profile, orders, saved items, delivery details, and privacy from one secure place.</p>
+      </div>
+      <span class="account-secure-badge">Secure Google sign-in</span>
     </section>
 
-    <section class="account-grid">
-      <div class="account-card" id="signedOutCard">
-        <p class="tag">Google Login</p>
-        <h2>Sign in to continue</h2>
-        <p class="note">This website uses Google login only. No password login, no email/password form.</p>
-
-        <button class="google-login-btn" id="accountGoogleLogin" type="button">
-          <span>G</span>
-          Continue with Google
-        </button>
-
-        <p id="accountLoginMessage" class="note"></p>
-      </div>
-
-      <div class="account-card hidden" id="signedInCard">
-        <p class="tag">Signed In</p>
-        <div class="profile-row">
-          <img id="accountPhoto" alt="Profile photo">
+    <section class="account-shell">
+      <aside class="account-sidebar" aria-label="Account navigation">
+        <div class="account-sidebar-profile">
+          <span class="account-sidebar-avatar" id="accountSidebarAvatar" aria-hidden="true">RF</span>
           <div>
-            <h2 id="accountName">Customer</h2>
-            <p id="accountEmail" class="note"></p>
+            <strong id="accountMemberName">Guest customer</strong>
+            <span id="accountMemberStatus">Sign in to sync your account</span>
           </div>
         </div>
-
-        <button class="secondary-btn full" id="accountSignOut">Sign Out</button>
-      </div>
-
-      <div class="account-card hidden" id="accountSettingsCard">
-        <p class="tag">Profile</p>
-        <h2>Personal information</h2>
-
-        <form id="accountSettingsForm" class="account-settings-form">
-          <label>Display Name
-            <input id="savedDisplayName" name="displayName" type="text" maxlength="60" autocomplete="name" placeholder="Your name">
-          </label>
-
-          <label>Preferred Size
-            <select id="preferredSize" name="preferredSize">
-              <option value="S">S</option>
-              <option value="M" selected>M</option>
-              <option value="L">L</option>
-              <option value="XL">XL</option>
-              <option value="2XL">2XL</option>
-            </select>
-          </label>
-
-          <label>Phone Number
-            <input id="savedPhone" name="phone" type="tel" autocomplete="tel" placeholder="Optional">
-          </label>
-
-          <button class="primary-btn full" type="submit">Save Profile</button>
-          <p id="accountSettingsMessage" class="note"></p>
-        </form>
-      </div>
-
-      <div class="account-card account-addresses-card hidden" id="accountAddressesCard">
-        <p class="tag">Saved Addresses</p>
-        <h2>Delivery addresses</h2>
-        <div id="savedAddresses" class="saved-addresses"></div>
-        <form id="addressBookForm" class="account-settings-form compact-form">
-          <div class="account-form-grid">
-            <label>Label<input id="addressLabel" type="text" maxlength="30" placeholder="Home" required></label>
-            <label>Street Address<input id="accountAddress" type="text" maxlength="120" autocomplete="street-address" required></label>
-            <label>City<input id="accountCity" type="text" maxlength="60" autocomplete="address-level2" required></label>
-            <label>State<input id="accountState" type="text" maxlength="30" autocomplete="address-level1" required></label>
-            <label>ZIP Code<input id="accountZip" type="text" maxlength="10" autocomplete="postal-code" required></label>
-          </div>
-          <button class="secondary-btn full" type="submit">Add Address</button>
-          <p id="addressBookMessage" class="note"></p>
-        </form>
-      </div>
-
-      <div class="account-card account-wishlist-card hidden" id="accountWishlistCard">
-        <p class="tag">Wishlist</p>
-        <h2>Saved products</h2>
-        <div id="accountWishlist" class="account-wishlist"></div>
-      </div>
-
-      <div class="account-card hidden" id="notificationSettingsCard">
-        <p class="tag">Notifications</p>
-        <h2>Communication preferences</h2>
-        <form id="notificationSettingsForm" class="account-settings-form">
-          <label class="account-check-row"><input id="orderUpdates" type="checkbox" checked><span>Order and shipping updates</span></label>
-          <label class="account-check-row"><input id="promotionUpdates" type="checkbox"><span>New drops and promotions</span></label>
-          <label class="account-check-row"><input id="stockUpdates" type="checkbox" checked><span>Wishlist restock alerts</span></label>
-          <button class="primary-btn full" type="submit">Save Notifications</button>
-          <p id="notificationSettingsMessage" class="note"></p>
-        </form>
-      </div>
-
-      <div class="account-card account-security-card hidden" id="accountSecurityCard">
-        <p class="tag">Login &amp; Security</p>
-        <h2>Account access</h2>
-        <p class="note">Random Fits uses your Google account, so email and password changes are securely managed by Google.</p>
-        <div class="account-security-actions">
-          <a class="secondary-btn" href="https://myaccount.google.com/personal-info" target="_blank" rel="noopener">Change Email</a>
-          <a class="secondary-btn" href="https://myaccount.google.com/security" target="_blank" rel="noopener">Change Password</a>
-          <button class="danger-btn" id="deleteCustomerAccount" type="button">Delete Random Fits Account</button>
+        <nav class="account-section-nav">
+          <a href="#accountOverviewCard">Overview <span>Account summary</span></a>
+          <a href="#accountSettingsCard">Profile <span>Personal details</span></a>
+          <a href="#accountOrdersCard">Orders <span>History and tracking</span></a>
+          <a href="#accountAddressesCard">Addresses <span>Delivery locations</span></a>
+          <a href="#accountWishlistCard">Wishlist <span>Saved products</span></a>
+          <a href="#notificationSettingsCard">Notifications <span>Email preferences</span></a>
+          <a href="#accountSecurityCard">Security <span>Login and privacy</span></a>
+        </nav>
+        <div class="account-help-card">
+          <span>Customer care</span>
+          <strong>Need help with an order?</strong>
+          <a href="mailto:josedia1219@gmail.com" id="accountSupportLink">Contact support</a>
         </div>
-        <p id="accountSecurityMessage" class="note"></p>
-      </div>
+      </aside>
 
-      <div class="account-card account-orders-card" id="accountOrdersCard">
-        <p class="tag">Order History</p>
-        <h2>My orders</h2>
-        <p class="note">View tracking progress, order details, and cancel eligible orders before they ship.</p>
-        <div id="accountOrders" class="account-orders"></div>
+      <div class="account-dashboard">
+        <section class="account-card account-overview-card" id="accountOverviewCard">
+          <div class="account-section-heading">
+            <div><p class="tag">Overview</p><h2>Your account at a glance</h2></div>
+            <span class="account-status-pill" id="accountStatusBadge">Guest</span>
+          </div>
+          <div class="account-stats" aria-label="Account summary">
+            <a href="#accountOrdersCard"><strong id="accountOrderCount">0</strong><span>Orders</span></a>
+            <a href="#accountWishlistCard"><strong id="accountWishlistCount">0</strong><span>Saved items</span></a>
+            <a href="#accountAddressesCard"><strong id="accountAddressCount">0</strong><span>Addresses</span></a>
+          </div>
+          <div class="account-quick-links">
+            <a href="index.html#shop">Continue shopping</a>
+            <a href="#accountOrdersCard">Track an order</a>
+            <a href="#accountSettingsCard">Update profile</a>
+          </div>
+        </section>
+
+        <section class="account-card account-auth-card" id="signedOutCard">
+          <div>
+            <p class="tag">Secure Access</p>
+            <h2>Sign in to your account</h2>
+            <p class="note">Use Google to securely access orders, addresses, preferences, and saved products.</p>
+          </div>
+          <button class="google-login-btn" id="accountGoogleLogin" type="button"><span>G</span>Continue with Google</button>
+          <p id="accountLoginMessage" class="note"></p>
+        </section>
+
+        <section class="account-card account-profile-summary hidden" id="signedInCard">
+          <div class="profile-row">
+            <img id="accountPhoto" alt="Profile photo">
+            <div><p class="tag">Signed In</p><h2 id="accountName">Customer</h2><p id="accountEmail" class="note"></p></div>
+          </div>
+          <button class="secondary-btn" id="accountSignOut">Sign Out</button>
+        </section>
+
+        <section class="account-card hidden" id="accountSettingsCard">
+          <div class="account-section-heading"><div><p class="tag">Profile</p><h2>Personal information</h2><p>Keep your contact details and shopping preferences current.</p></div></div>
+          <form id="accountSettingsForm" class="account-settings-form">
+            <div class="account-form-grid profile-form-grid">
+              <label>Display Name<input id="savedDisplayName" name="displayName" type="text" maxlength="60" autocomplete="name" placeholder="Your name"></label>
+              <label>Phone Number<input id="savedPhone" name="phone" type="tel" autocomplete="tel" placeholder="Optional"></label>
+              <label>Preferred Size<select id="preferredSize" name="preferredSize"><option value="S">S</option><option value="M" selected>M</option><option value="L">L</option><option value="XL">XL</option><option value="2XL">2XL</option></select></label>
+            </div>
+            <div class="account-form-footer"><p id="accountSettingsMessage" class="note">Used to make checkout faster.</p><button class="primary-btn" type="submit">Save Changes</button></div>
+          </form>
+        </section>
+
+        <section class="account-card account-orders-card" id="accountOrdersCard">
+          <div class="account-section-heading"><div><p class="tag">Orders</p><h2>Order history</h2><p>View tracking progress, details, and cancel eligible orders before shipment.</p></div><a class="secondary-btn" href="index.html#shop">Shop New Arrivals</a></div>
+          <div id="accountOrders" class="account-orders"></div>
+        </section>
+
+        <section class="account-card account-addresses-card hidden" id="accountAddressesCard">
+          <div class="account-section-heading"><div><p class="tag">Addresses</p><h2>Delivery addresses</h2><p>Save up to ten locations for a faster checkout.</p></div></div>
+          <div id="savedAddresses" class="saved-addresses"></div>
+          <form id="addressBookForm" class="account-settings-form compact-form">
+            <h3>Add a new address</h3>
+            <div class="account-form-grid">
+              <label>Label<input id="addressLabel" type="text" maxlength="30" placeholder="Home" required></label>
+              <label>Street Address<input id="accountAddress" type="text" maxlength="120" autocomplete="street-address" required></label>
+              <label>City<input id="accountCity" type="text" maxlength="60" autocomplete="address-level2" required></label>
+              <label>State<input id="accountState" type="text" maxlength="30" autocomplete="address-level1" required></label>
+              <label>ZIP Code<input id="accountZip" type="text" maxlength="10" autocomplete="postal-code" required></label>
+            </div>
+            <div class="account-form-footer"><p id="addressBookMessage" class="note"></p><button class="secondary-btn" type="submit">Save Address</button></div>
+          </form>
+        </section>
+
+        <section class="account-card account-wishlist-card hidden" id="accountWishlistCard">
+          <div class="account-section-heading"><div><p class="tag">Wishlist</p><h2>Saved products</h2><p>Keep an eye on pieces you want to come back to.</p></div><a class="secondary-btn" href="index.html#shop">Browse Products</a></div>
+          <div id="accountWishlist" class="account-wishlist"></div>
+        </section>
+
+        <section class="account-card hidden" id="notificationSettingsCard">
+          <div class="account-section-heading"><div><p class="tag">Notifications</p><h2>Communication preferences</h2><p>Choose which useful store updates you receive.</p></div></div>
+          <form id="notificationSettingsForm" class="account-settings-form">
+            <label class="account-check-row"><span><strong>Order and shipping updates</strong><small>Receipts, tracking changes, and delivery notices.</small></span><input id="orderUpdates" type="checkbox" checked></label>
+            <label class="account-check-row"><span><strong>New drops and promotions</strong><small>Occasional announcements and special offers.</small></span><input id="promotionUpdates" type="checkbox"></label>
+            <label class="account-check-row"><span><strong>Wishlist restock alerts</strong><small>Know when a saved product returns.</small></span><input id="stockUpdates" type="checkbox" checked></label>
+            <div class="account-form-footer"><p id="notificationSettingsMessage" class="note">You can update these anytime.</p><button class="primary-btn" type="submit">Save Preferences</button></div>
+          </form>
+        </section>
+
+        <section class="account-card account-security-card hidden" id="accountSecurityCard">
+          <div class="account-section-heading"><div><p class="tag">Security &amp; Privacy</p><h2>Account access</h2><p>Your sign-in is protected by Google. Passwords are never stored by Random Fits.</p></div><span class="account-status-pill secure">Protected</span></div>
+          <div class="account-security-grid">
+            <div><strong>Email and password</strong><p>Manage your identity and sign-in security directly through Google.</p><div class="account-security-actions"><a class="secondary-btn" href="https://myaccount.google.com/personal-info" target="_blank" rel="noopener">Manage Email</a><a class="secondary-btn" href="https://myaccount.google.com/security" target="_blank" rel="noopener">Google Security</a></div></div>
+            <div class="account-danger-zone"><strong>Delete account data</strong><p>Permanently removes your Random Fits profile, saved addresses, preferences, and wishlist.</p><button class="danger-btn" id="deleteCustomerAccount" type="button">Delete Account</button></div>
+          </div>
+          <p id="accountSecurityMessage" class="note"></p>
+        </section>
       </div>
     </section>
   </main>

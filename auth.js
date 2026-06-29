@@ -51,6 +51,14 @@ const addressBookMessage = document.getElementById("addressBookMessage");
 const accountWishlist = document.getElementById("accountWishlist");
 const deleteCustomerAccount = document.getElementById("deleteCustomerAccount");
 const accountSecurityMessage = document.getElementById("accountSecurityMessage");
+const accountMemberName = document.getElementById("accountMemberName");
+const accountMemberStatus = document.getElementById("accountMemberStatus");
+const accountStatusBadge = document.getElementById("accountStatusBadge");
+const accountOrderCount = document.getElementById("accountOrderCount");
+const accountWishlistCount = document.getElementById("accountWishlistCount");
+const accountAddressCount = document.getElementById("accountAddressCount");
+const accountSidebarAvatar = document.getElementById("accountSidebarAvatar");
+const accountSupportLink = document.getElementById("accountSupportLink");
 let profileMenu = null;
 
 function notify(message, type = "info", title = "") {
@@ -352,7 +360,50 @@ function getSavedAddresses() {
   }
 }
 
+function renderAccountSummary() {
+  const customer = getSavedCustomer();
+  const email = String(customer?.email || "").toLowerCase();
+  let wishlist = [];
+  let orders = [];
+
+  try {
+    wishlist = JSON.parse(localStorage.getItem("randomFitsWishlist") || "[]");
+    if (!Array.isArray(wishlist)) wishlist = [];
+  } catch {
+    wishlist = [];
+  }
+
+  try {
+    const allOrders = JSON.parse(localStorage.getItem("randomFitsOrders") || "[]");
+    orders = Array.isArray(allOrders) && email
+      ? allOrders.filter(order => String(order.customer?.email || "").toLowerCase() === email)
+      : [];
+  } catch {
+    orders = [];
+  }
+
+  if (accountMemberName) accountMemberName.textContent = customer?.name || "Guest customer";
+  if (accountMemberStatus) accountMemberStatus.textContent = customer?.email || "Sign in to sync your account";
+  if (accountSidebarAvatar) {
+    const initials = String(customer?.name || "Random Fits").split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join("");
+    accountSidebarAvatar.textContent = initials.toUpperCase() || "RF";
+  }
+  if (accountSupportLink) {
+    try {
+      const supportEmail = JSON.parse(localStorage.getItem("randomFitsStoreSettings") || "{}").supportEmail;
+      if (supportEmail) accountSupportLink.href = `mailto:${supportEmail}`;
+    } catch {
+      // Keep the default support address when store settings are unavailable.
+    }
+  }
+  if (accountStatusBadge) accountStatusBadge.textContent = customer ? "Active" : "Guest";
+  if (accountOrderCount) accountOrderCount.textContent = String(orders.length);
+  if (accountWishlistCount) accountWishlistCount.textContent = String(wishlist.length);
+  if (accountAddressCount) accountAddressCount.textContent = String(getSavedAddresses().length);
+}
+
 function renderSavedAddresses() {
+  renderAccountSummary();
   if (!savedAddresses) return;
   const addresses = getSavedAddresses();
   if (!addresses.length) {
@@ -369,6 +420,7 @@ function renderSavedAddresses() {
 }
 
 function renderWishlist() {
+  renderAccountSummary();
   if (!accountWishlist) return;
   const ids = JSON.parse(localStorage.getItem("randomFitsWishlist") || "[]").map(String);
   let catalog = [];
@@ -404,6 +456,7 @@ function orderTrackingHtml(status) {
 }
 
 function renderAccountOrders() {
+  renderAccountSummary();
   if (!accountOrders) return;
 
   const customer = getSavedCustomer();
