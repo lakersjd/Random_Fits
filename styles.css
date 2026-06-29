@@ -409,6 +409,10 @@ textarea:focus {
   background: #111;
 }
 
+.product-photo::before {
+  content: none;
+}
+
 .product-photo img {
   width: 100%;
   height: 100%;
